@@ -10,7 +10,9 @@ use {
 use crate::instruction::ProgramInstruction;
 
 pub mod create_central_state;
-pub mod create_token;
+pub mod create_nft;
+pub mod redeem_nft;
+pub mod withdraw_tokens;
 
 pub struct Processor {}
 
@@ -27,11 +29,23 @@ impl Processor {
         msg!("Instruction unpacked");
 
         match instruction {
-            ProgramInstruction::MakeOffer => {
+            ProgramInstruction::CreateCentralState => {
                 msg!("Instruction: Create central state");
-                let params = create_token::Params::try_from_slice(instruction_data)
+                create_central_state::process(program_id, accounts)?;
+            }
+            ProgramInstruction::CreateNft => {
+                msg!("Instruction: Create NFT");
+                let params = create_nft::Params::try_from_slice(instruction_data)
                     .map_err(|_| ProgramError::InvalidInstructionData)?;
-                create_token::process(program_id, accounts, params)?;
+                create_nft::process(program_id, accounts, params)?;
+            }
+            ProgramInstruction::RedeemNft => {
+                msg!("Instruction: Redeem NFT");
+                redeem_nft::process(program_id, accounts)?;
+            }
+            ProgramInstruction::WithdrawTokens => {
+                msg!("Instruction: Withdraw tokens");
+                withdraw_tokens::process(program_id, accounts)?
             }
         }
 

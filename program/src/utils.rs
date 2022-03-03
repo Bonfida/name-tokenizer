@@ -1,23 +1,33 @@
 use {
     bonfida_utils::checks::check_account_owner,
     solana_program::{
-        account_info::AccountInfo, entrypoint::ProgramResult, msg, program_error::ProgramError,
-        program_pack::Pack, pubkey::Pubkey,
+        account_info::AccountInfo, entrypoint::ProgramResult, hash::hashv, msg,
+        program_error::ProgramError,
     },
-    spl_token::state::Account,
+    spl_name_service::state::{get_seeds_and_key, HASH_PREFIX},
 };
 
-#[allow(dead_code)]
-pub fn assert_uninitialized(account: &AccountInfo) -> ProgramResult {
-    if !account.data_is_empty() {
-        return Err(ProgramError::AccountAlreadyInitialized);
-    }
-    Ok(())
-}
+use crate::state::ROOT_DOMAIN_ACCOUNT;
 
-#[allow(dead_code)]
-pub fn get_mint_from_account_info(account: &AccountInfo) -> Result<Pubkey, ProgramError> {
-    let token_acc = Account::unpack_from_slice(&account.data.borrow())?;
-    msg!("{:?}", token_acc);
-    Ok(token_acc.mint)
+pub fn check_name(name: &str, account: &AccountInfo) -> ProgramResult {
+    check_account_owner(account, &spl_name_service::ID)?;
+
+    let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + name).as_bytes()])
+        .as_ref()
+        .to_vec();
+
+    if hashed_name.len() != 32 {
+        msg!("Invalid seed length");
+        return Err(ProgramError::InvalidArgument);
+    }
+
+    let (name_account_key, _) =
+        get_seeds_and_key(account.key, hashed_name, None, Some(&ROOT_DOMAIN_ACCOUNT));
+
+    if &name_account_key != account.key {
+        msg!("Provided wrong name account");
+        return Err(ProgramError::InvalidArgument);
+    }
+
+    Ok(())
 }

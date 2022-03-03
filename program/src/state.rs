@@ -9,7 +9,9 @@ use {
 
 pub const ROOT_DOMAIN_ACCOUNT: Pubkey = pubkey!("58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx");
 
-pub const FEE: u64 = 5;
+pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
+
+pub const SELLER_BASIS: u16 = 500;
 
 #[derive(BorshSerialize, BorshDeserialize, BorshSize, PartialEq)]
 #[allow(missing_docs)]
@@ -39,7 +41,7 @@ impl CentralState {
 
 #[derive(BorshSerialize, BorshDeserialize, BorshSize)]
 #[allow(missing_docs)]
-pub struct TokenRecord {
+pub struct NftRecord {
     /// Tag
     pub tag: Tag,
 
@@ -57,8 +59,8 @@ pub struct TokenRecord {
 }
 
 #[allow(missing_docs)]
-impl TokenRecord {
-    pub const SEED: &'static [u8; 12] = b"token_record";
+impl NftRecord {
+    pub const SEED: &'static [u8; 10] = b"nft_record";
 
     pub fn new(nonce: u8, owner: Pubkey, name_account: Pubkey, nft_mint: Pubkey) -> Self {
         Self {
@@ -70,13 +72,8 @@ impl TokenRecord {
         }
     }
 
-    pub fn find_key(
-        owner: &Pubkey,
-        name_account: &Pubkey,
-        quote_mint: &Pubkey,
-        program_id: &Pubkey,
-    ) -> (Pubkey, u8) {
-        let seeds: &[&[u8]] = &[TokenRecord::SEED, &name_account.to_bytes()];
+    pub fn find_key(name_account: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
+        let seeds: &[&[u8]] = &[NftRecord::SEED, &name_account.to_bytes()];
         Pubkey::find_program_address(seeds, program_id)
     }
 
@@ -84,12 +81,12 @@ impl TokenRecord {
         self.serialize(&mut dst).unwrap()
     }
 
-    pub fn from_account_info(a: &AccountInfo, tag: Tag) -> Result<TokenRecord, ProgramError> {
+    pub fn from_account_info(a: &AccountInfo, tag: Tag) -> Result<NftRecord, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != tag as u8 && data[0] != Tag::Uninitialized as u8 {
             return Err(OfferError::DataTypeMismatch.into());
         }
-        let result = TokenRecord::deserialize(&mut data)?;
+        let result = NftRecord::deserialize(&mut data)?;
         Ok(result)
     }
 }

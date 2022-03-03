@@ -15,4 +15,4 @@ pub(crate) mod utils;
 #[allow(missing_docs)]
 pub mod cpi;
 
-declare_id!("85iDfUvr3HJyLM2zcq5BXSiDvUWfw6cSE1FfNBo8Ap29");
+declare_id!("8cLRM8yC7gdtEPLxjSkekxXBQHX35hnb4SVbf8RhDSCK");

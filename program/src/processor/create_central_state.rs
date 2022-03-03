@@ -1,6 +1,9 @@
 //! Create central state
 
-use crate::state::CentralState;
+use crate::{
+    cpi::Cpi,
+    state::{CentralState, Tag},
+};
 
 use {
     bonfida_utils::{
@@ -11,12 +14,10 @@ use {
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
-        program::{invoke, invoke_signed},
         program_error::ProgramError,
         pubkey::Pubkey,
         system_program,
     },
-    spl_token::instruction::transfer,
 };
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
@@ -39,7 +40,7 @@ pub struct Accounts<'a, T> {
 impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         accounts: &'a [AccountInfo<'b>],
-        program_id: &Pubkey,
+        _program_id: &Pubkey,
     ) -> Result<Self, ProgramError> {
         let accounts_iter = &mut accounts.iter();
         let accounts = Accounts {
@@ -62,5 +63,26 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 }
 
 pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+    let accounts = Accounts::parse(accounts, program_id)?;
+
+    // Check derivation
+    let (derived_key, nonce) = CentralState::find_key(program_id);
+    check_account_key(accounts.central_state, &derived_key)?;
+
+    let central_state = CentralState {
+        tag: Tag::CentralState,
+    };
+
+    Cpi::create_account(
+        program_id,
+        accounts.system_program,
+        accounts.fee_payer,
+        accounts.central_state,
+        &[&program_id.to_bytes(), &[nonce]],
+        central_state.borsh_len(),
+    )?;
+
+    central_state.save(&mut accounts.central_state.data.borrow_mut());
+
     Ok(())
 }
