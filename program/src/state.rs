@@ -13,6 +13,8 @@ pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
 
 pub const SELLER_BASIS: u16 = 500;
 
+pub const META_SYMBOL: &str = ".sol";
+
 #[derive(BorshSerialize, BorshDeserialize, BorshSize, PartialEq)]
 #[allow(missing_docs)]
 pub enum Tag {
@@ -88,5 +90,9 @@ impl NftRecord {
         }
         let result = NftRecord::deserialize(&mut data)?;
         Ok(result)
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.tag == Tag::ActiveRecord
     }
 }

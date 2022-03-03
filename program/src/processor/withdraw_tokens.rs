@@ -14,7 +14,7 @@ use {
         program_error::ProgramError,
         pubkey::Pubkey,
         rent::Rent,
-        system_instruction,
+        system_program,
         sysvar::Sysvar,
     },
     spl_token::state::Account,
@@ -51,6 +51,9 @@ pub struct Accounts<'a, T> {
 
     /// The SPL token program account
     pub spl_token_program: &'a T,
+
+    /// The system program account
+    pub system_program: &'a T,
 }
 
 impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
@@ -66,10 +69,12 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             token_destination: next_account_info(accounts_iter)?,
             token_source: next_account_info(accounts_iter)?,
             spl_token_program: next_account_info(accounts_iter)?,
+            system_program: next_account_info(accounts_iter)?,
         };
 
         // Check keys
         check_account_key(accounts.spl_token_program, &spl_token::ID)?;
+        check_account_key(accounts.system_program, &system_program::ID)?;
 
         // Check owners
         check_account_owner(accounts.nft, &spl_token::ID)?;
@@ -96,7 +101,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
 
     let nft = Account::unpack(&accounts.nft.data.borrow())?;
 
-    if nft.amount != 1 || nft.mint != nft_record.nft_mint {
+    if (nft_record.is_active() && nft.amount != 1) || nft.mint != nft_record.nft_mint {
         msg!("Invalid NFT account");
         return Err(ProgramError::InvalidAccountData);
     }
@@ -127,7 +132,16 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         &nft_record.name_account.to_bytes(),
         &[nft_record.nonce],
     ];
-    invoke_signed(&ix, &[], &[seeds])?;
+    invoke_signed(
+        &ix,
+        &[
+            accounts.spl_token_program.clone(),
+            accounts.token_source.clone(),
+            accounts.token_destination.clone(),
+            accounts.nft_record.clone(),
+        ],
+        &[seeds],
+    )?;
 
     // Withdraw native SOL if any
     let minimum_rent = Rent::get()?.minimum_balance(nft_record.borsh_len());
@@ -138,12 +152,11 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         .unwrap();
 
     msg!("+ Withdrawing native SOL {}", lamports_to_withdraw);
-    let ix = system_instruction::transfer(
-        accounts.nft_record.key,
-        accounts.nft_owner.key,
-        lamports_to_withdraw,
-    );
-    invoke_signed(&ix, &[], &[seeds])?;
+    let mut nft_record_lamports = accounts.nft_record.lamports.borrow_mut();
+    let mut nft_owner_lamports = accounts.nft_owner.lamports.borrow_mut();
+
+    **nft_record_lamports -= lamports_to_withdraw;
+    **nft_owner_lamports += lamports_to_withdraw;
 
     Ok(())
 }

@@ -21,8 +21,12 @@ pub fn check_name(name: &str, account: &AccountInfo) -> ProgramResult {
         return Err(ProgramError::InvalidArgument);
     }
 
-    let (name_account_key, _) =
-        get_seeds_and_key(account.key, hashed_name, None, Some(&ROOT_DOMAIN_ACCOUNT));
+    let (name_account_key, _) = get_seeds_and_key(
+        &spl_name_service::ID,
+        hashed_name,
+        None,
+        Some(&ROOT_DOMAIN_ACCOUNT),
+    );
 
     if &name_account_key != account.key {
         msg!("Provided wrong name account");

@@ -4,7 +4,7 @@ use solana_program::program_pack::Pack;
 
 use crate::{
     cpi::Cpi,
-    state::{CentralState, NftRecord, Tag, MINT_PREFIX, SELLER_BASIS},
+    state::{CentralState, NftRecord, Tag, META_SYMBOL, MINT_PREFIX, SELLER_BASIS},
     utils::check_name,
 };
 
@@ -24,8 +24,9 @@ use {
         program::{invoke, invoke_signed},
         program_error::ProgramError,
         pubkey::Pubkey,
-        system_program,
+        system_program, sysvar,
     },
+    spl_associated_token_account::create_associated_token_account,
     spl_name_service::instruction::transfer,
     spl_token::{
         instruction::{initialize_mint, mint_to},
@@ -82,6 +83,10 @@ pub struct Accounts<'a, T> {
 
     /// The SPL name service program account
     pub spl_name_service_program: &'a T,
+
+    pub ata_program: &'a T,
+
+    pub rent_account: &'a T,
 }
 
 impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
@@ -102,23 +107,32 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             metadata_program: next_account_info(accounts_iter)?,
             system_program: next_account_info(accounts_iter)?,
             spl_name_service_program: next_account_info(accounts_iter)?,
+            ata_program: next_account_info(accounts_iter)?,
+            rent_account: next_account_info(accounts_iter)?,
         };
 
         // Check keys
-        check_account_key(accounts.spl_token_program, &spl_token::ID)?;
-        check_account_key(accounts.system_program, &system_program::ID)?;
-        check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
+        check_account_key(accounts.spl_token_program, &spl_token::ID).unwrap();
+        check_account_key(accounts.system_program, &system_program::ID).unwrap();
+        check_account_key(accounts.spl_name_service_program, &spl_name_service::ID).unwrap();
+        check_account_key(accounts.ata_program, &spl_associated_token_account::ID).unwrap();
+        check_account_key(accounts.rent_account, &sysvar::rent::ID).unwrap();
 
         // Check owners
         check_account_owner(accounts.mint, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.mint, &spl_token::ID))?;
-        check_account_owner(accounts.nft_destination, &spl_token::ID)?;
-        check_account_owner(accounts.name_account, &spl_name_service::ID)?;
+            .or_else(|_| check_account_owner(accounts.mint, &spl_token::ID))
+            .unwrap();
+        check_account_owner(accounts.nft_destination, &system_program::ID)
+            .or_else(|_| check_account_owner(accounts.nft_destination, &spl_token::ID))
+            .unwrap();
+        check_account_owner(accounts.name_account, &spl_name_service::ID).unwrap();
         check_account_owner(accounts.nft_record, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.nft_record, program_id))?;
+            .or_else(|_| check_account_owner(accounts.nft_record, program_id))
+            .unwrap();
         check_account_owner(accounts.metadata_account, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID))?;
-        check_account_owner(accounts.central_state, program_id)?;
+            .or_else(|_| check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID))
+            .unwrap();
+        check_account_owner(accounts.central_state, program_id).unwrap();
 
         // Check signer
         check_signer(accounts.name_owner)?;
@@ -191,21 +205,51 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     // Create mint
     if accounts.mint.data_is_empty() {
         msg!("+ Creating mint");
-        let ix = initialize_mint(&spl_token::ID, &mint, &central_key, Some(&central_key), 0)?;
+
+        // Create mint account
         let seeds: &[&[u8]] = &[
             MINT_PREFIX,
             &accounts.name_account.key.to_bytes(),
             &[mint_nonce],
         ];
+        Cpi::create_account(
+            &spl_token::ID,
+            accounts.system_program,
+            accounts.name_owner,
+            accounts.mint,
+            seeds,
+            Mint::LEN,
+        )?;
 
+        // Initialize mint
+        let ix = initialize_mint(&spl_token::ID, &mint, &central_key, Some(&central_key), 0)?;
         invoke_signed(
             &ix,
             &[
                 accounts.spl_token_program.clone(),
                 accounts.mint.clone(),
-                accounts.central_state.clone(),
+                accounts.rent_account.clone(),
             ],
             &[seeds],
+        )?;
+
+        // A token account cannot be initialized before the mint
+        msg!("+ Creating user ATA");
+        let ix = create_associated_token_account(
+            accounts.name_owner.key,
+            accounts.name_owner.key,
+            accounts.mint.key,
+        );
+        invoke(
+            &ix,
+            &[
+                accounts.ata_program.clone(),
+                accounts.spl_token_program.clone(),
+                accounts.rent_account.clone(),
+                accounts.name_owner.clone(),
+                accounts.nft_destination.clone(),
+                accounts.mint.clone(),
+            ],
         )?;
     } else {
         msg!("+ Mint already exists");
@@ -255,8 +299,8 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             central_key,
             *accounts.name_owner.key,
             central_key,
-            name.clone(),
             name,
+            META_SYMBOL.to_string(),
             uri,
             Some(vec![creator]),
             SELLER_BASIS,
@@ -270,6 +314,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             &[
                 accounts.metadata_program.clone(),
                 accounts.metadata_account.clone(),
+                accounts.rent_account.clone(),
                 accounts.mint.clone(),
                 accounts.central_state.clone(),
                 accounts.name_owner.clone(),

@@ -1,43 +1,59 @@
-use borsh::BorshSerialize;
-use solana_program::{pubkey, pubkey::Pubkey};
-use solana_program_test::{processor, ProgramTest};
-use solana_sdk::account::Account;
-use solana_sdk::signer::{keypair::Keypair, Signer};
-use spl_associated_token_account::{create_associated_token_account, get_associated_token_address};
-pub mod common;
-use crate::common::utils::{mint_bootstrap, sign_send_instructions};
-use name_offers::{
-    entrypoint::process_instruction,
-    instruction::{
-        accept_offer, buy_fixed_price, cancel_fixed_price, cancel_offer, make_fixed_price,
-        make_offer, register_favourite,
+use {
+    borsh::BorshSerialize,
+    mpl_token_metadata::pda::find_metadata_account,
+    name_tokenizer::{
+        entrypoint::process_instruction,
+        instruction::{create_central_state, create_nft, redeem_nft, withdraw_tokens},
+        state::{CentralState, NftRecord, MINT_PREFIX, ROOT_DOMAIN_ACCOUNT},
     },
-    state::{FavouriteDomain, FixedPriceOffer, Offer, FEE_OWNER, ROOT_DOMAIN_ACCOUNT},
+    solana_program::{hash::hashv, pubkey::Pubkey, system_program, sysvar},
+    solana_program_test::{processor, ProgramTest},
+    solana_sdk::{
+        account::Account,
+        signer::{keypair::Keypair, Signer},
+    },
+    spl_associated_token_account::{create_associated_token_account, get_associated_token_address},
+    spl_name_service::state::{get_seeds_and_key, HASH_PREFIX},
 };
-use solana_program::{system_instruction, system_program, sysvar};
+
+pub mod common;
+
+use crate::common::utils::{mint_bootstrap, sign_send_instructions};
 
 #[tokio::test]
 async fn test_offer() {
     // Create program and test environment
-    let program_id = pubkey!("hxrotrKwueSFofXvCmCpYyKMjn1BhmwKtPxA1nLcv8m");
-    let seller = Keypair::new();
-    let buyer = Keypair::new();
+    let user = Keypair::new();
     let mint_authority = Keypair::new();
-    let offer_amount: u64 = 10_000_000;
 
-    let mut program_test =
-        ProgramTest::new("name_offers", program_id, processor!(process_instruction));
+    let mut program_test = ProgramTest::new(
+        "name_tokenizer",
+        name_tokenizer::ID,
+        processor!(process_instruction),
+    );
     program_test.add_program("spl_name_service", spl_name_service::ID, None);
+    program_test.add_program("mpl_token_metadata", mpl_token_metadata::ID, None);
+
+    // Create domain name
+    let name = "something_domain_name";
+    let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + name).as_bytes()])
+        .as_ref()
+        .to_vec();
+
+    let (name_key, _) = get_seeds_and_key(
+        &spl_name_service::ID,
+        hashed_name,
+        None,
+        Some(&ROOT_DOMAIN_ACCOUNT),
+    );
 
     let root_domain_data = spl_name_service::state::NameRecordHeader {
         parent_name: ROOT_DOMAIN_ACCOUNT,
-        owner: seller.pubkey(),
+        owner: user.pubkey(),
         class: Pubkey::default(),
     }
     .try_to_vec()
     .unwrap();
-
-    let name_key = Keypair::new().pubkey();
 
     program_test.add_account(
         name_key,
@@ -49,233 +65,141 @@ async fn test_offer() {
         },
     );
 
+    program_test.add_account(
+        user.pubkey(),
+        Account {
+            lamports: 100_000_000_000,
+            ..Account::default()
+        },
+    );
+
     //
     // Create mint
     //
-    let (mint, _) = mint_bootstrap(None, 6, &mut program_test, &mint_authority.pubkey());
+    let (usdc_mint, _) = mint_bootstrap(None, 6, &mut program_test, &mint_authority.pubkey());
 
     ////
     // Create test context
     ////
     let mut prg_test_ctx = program_test.start_with_context().await;
 
-    // Send some SOL
-    let ix = system_instruction::transfer(
-        &prg_test_ctx.payer.pubkey(),
-        &buyer.pubkey(),
-        1_000_000_000_000 * 10,
+    /////
+    // Create central state
+    ////
+    let (central_key, _) = CentralState::find_key(&name_tokenizer::ID);
+    let ix = create_central_state(
+        create_central_state::Accounts {
+            central_state: &central_key,
+            fee_payer: &prg_test_ctx.payer.pubkey(),
+            system_program: &system_program::ID,
+        },
+        create_central_state::Params {},
     );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
         .await
         .unwrap();
 
     ////
-    // Mint tokens in buyer account
+    // Create NFT
     ////
-    let ix = create_associated_token_account(&prg_test_ctx.payer.pubkey(), &buyer.pubkey(), &mint);
+    let (nft_mint, _) =
+        Pubkey::find_program_address(&[MINT_PREFIX, &name_key.to_bytes()], &name_tokenizer::ID);
+    let nft_ata = get_associated_token_address(&user.pubkey(), &nft_mint);
+    let (nft_record, _) = NftRecord::find_key(&name_key, &name_tokenizer::ID);
+    let (metadata_key, _) = find_metadata_account(&nft_mint);
+
+    let ix = create_nft(
+        create_nft::Accounts {
+            mint: &nft_mint,
+            nft_destination: &nft_ata,
+            name_account: &name_key,
+            nft_record: &nft_record,
+            name_owner: &user.pubkey(),
+            metadata_account: &metadata_key,
+            central_state: &central_key,
+            spl_token_program: &spl_token::ID,
+            metadata_program: &mpl_token_metadata::ID,
+            system_program: &system_program::ID,
+            spl_name_service_program: &spl_name_service::ID,
+            ata_program: &spl_associated_token_account::ID,
+            rent_account: &sysvar::rent::ID,
+        },
+        create_nft::Params {
+            name: name.to_string(),
+            uri: "test".to_string(),
+        },
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
+        .await
+        .unwrap();
+
+    ////
+    // Withdraw NFT
+    ////
+    let ix = redeem_nft(
+        redeem_nft::Accounts {
+            mint: &nft_mint,
+            nft_source: &nft_ata,
+            nft_owner: &user.pubkey(),
+            nft_record: &nft_record,
+            name_account: &name_key,
+            spl_token_program: &spl_token::ID,
+            spl_name_service_program: &spl_name_service::ID,
+        },
+        redeem_nft::Params {},
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
+        .await
+        .unwrap();
+
+    ////
+    // Send tokens
+    ////
+    let usdc_ata_program = get_associated_token_address(&nft_record, &usdc_mint);
+    let usdc_ata_user = get_associated_token_address(&user.pubkey(), &usdc_mint);
+
+    let ix = create_associated_token_account(&prg_test_ctx.payer.pubkey(), &nft_record, &usdc_mint);
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
         .await
         .unwrap();
 
-    let buyer_ata = get_associated_token_address(&buyer.pubkey(), &mint);
+    let ix =
+        create_associated_token_account(&prg_test_ctx.payer.pubkey(), &user.pubkey(), &usdc_mint);
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap();
+
     let ix = spl_token::instruction::mint_to(
         &spl_token::ID,
-        &mint,
-        &buyer_ata,
+        &usdc_mint,
+        &usdc_ata_program,
         &mint_authority.pubkey(),
         &[],
-        offer_amount,
+        10_000_000_000,
     )
     .unwrap();
-
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&mint_authority])
         .await
         .unwrap();
 
     ////
-    // Make fee account
+    // Withdraw sent tokens
     ////
-    let ix = create_associated_token_account(&prg_test_ctx.payer.pubkey(), &FEE_OWNER, &mint);
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
-        .await
-        .unwrap();
-    let fee_account = get_associated_token_address(&FEE_OWNER, &mint);
-
-    // Make an offer
-    let (offer_key, _) = Offer::find_key(&buyer.pubkey(), &name_key, &mint, &program_id);
-
-    let (escrow_account, _) = Pubkey::find_program_address(&[&offer_key.to_bytes()], &program_id);
-    let ix = make_offer(
-        make_offer::Accounts {
-            owner: &buyer.pubkey(),
-            quote_mint: &mint,
-            token_source: &buyer_ata,
-            escrow_token_account: &escrow_account,
-            offer_account: &offer_key,
-            system_program: &system_program::ID,
-            rent_account: &sysvar::rent::ID,
+    let ix = withdraw_tokens(
+        withdraw_tokens::Accounts {
+            nft: &nft_ata,
+            nft_owner: &user.pubkey(),
+            nft_record: &nft_record,
+            token_source: &usdc_ata_program,
+            token_destination: &usdc_ata_user,
             spl_token_program: &spl_token::ID,
-        },
-        make_offer::Params {
-            amount: offer_amount,
-            name_account: name_key,
-        },
-    );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&buyer])
-        .await
-        .unwrap();
-
-    // Cancel offer
-    let ix = cancel_offer(
-        cancel_offer::Accounts {
-            owner: &buyer.pubkey(),
-            token_destination: &buyer_ata,
-            escrow_account: &escrow_account,
-            offer_account: &offer_key,
-            spl_token_program: &spl_token::ID,
-        },
-        cancel_offer::Params {},
-    );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&buyer])
-        .await
-        .unwrap();
-
-    // Make new offer
-    let ix = make_offer(
-        make_offer::Accounts {
-            owner: &buyer.pubkey(),
-            quote_mint: &mint,
-            token_source: &buyer_ata,
-            escrow_token_account: &escrow_account,
-            offer_account: &offer_key,
-            system_program: &system_program::ID,
-            rent_account: &sysvar::rent::ID,
-            spl_token_program: &spl_token::ID,
-        },
-        make_offer::Params {
-            amount: offer_amount - 1,
-            name_account: name_key,
-        },
-    );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&buyer])
-        .await
-        .unwrap();
-
-    // Accept offer
-    let ix = create_associated_token_account(&prg_test_ctx.payer.pubkey(), &seller.pubkey(), &mint);
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
-        .await
-        .unwrap();
-
-    let seller_ata = get_associated_token_address(&seller.pubkey(), &mint);
-
-    let ix = accept_offer(
-        accept_offer::Accounts {
-            offer_beneficiary: &seller.pubkey(),
-            name_account: &name_key,
-            destination_token_account: &seller_ata,
-            escrow_token_account: &escrow_account,
-            offer_account: &offer_key,
-            spl_token_program: &spl_token::ID,
-            name_service_program: &spl_name_service::ID,
-            fee_account: &fee_account,
-        },
-        accept_offer::Params {},
-    );
-
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&seller])
-        .await
-        .unwrap();
-
-    // Register favourite domain
-    let favourite_key = FavouriteDomain::find_key(&buyer.pubkey(), &program_id).0;
-    let ix = register_favourite(
-        register_favourite::Accounts {
-            name_account: &name_key,
-            favourite_account: &favourite_key,
-            owner: &buyer.pubkey(),
             system_program: &system_program::ID,
         },
-        register_favourite::Params {},
+        withdraw_tokens::Params {},
     );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&buyer])
-        .await
-        .unwrap();
-
-    // Fixed price offer
-
-    let (fixed_price_key, _) =
-        FixedPriceOffer::find_key(&buyer.pubkey(), &name_key, &mint, &program_id);
-    let ix = make_fixed_price(
-        make_fixed_price::Accounts {
-            fixed_price_offer: &fixed_price_key,
-            fixed_price_offer_owner: &buyer.pubkey(),
-            name_account: &name_key,
-            token_destination: &buyer_ata,
-            name_service_program: &spl_name_service::ID,
-            system_program: &system_program::ID,
-        },
-        make_fixed_price::Params {
-            amount: offer_amount,
-            quote_mint: mint,
-        },
-    );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&buyer])
-        .await
-        .unwrap();
-
-    // Cancel fixed price
-    let ix = cancel_fixed_price(
-        cancel_fixed_price::Accounts {
-            fixed_price_offer: &fixed_price_key,
-            fixed_price_offer_owner: &buyer.pubkey(),
-            name_account: &name_key,
-            name_service_program: &spl_name_service::ID,
-            system_program: &system_program::ID,
-        },
-        cancel_fixed_price::Params {},
-    );
-
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&buyer])
-        .await
-        .unwrap();
-
-    // Make new fixed price offer
-    let ix = make_fixed_price(
-        make_fixed_price::Accounts {
-            fixed_price_offer: &fixed_price_key,
-            fixed_price_offer_owner: &buyer.pubkey(),
-            name_account: &name_key,
-            token_destination: &buyer_ata,
-            name_service_program: &spl_name_service::ID,
-            system_program: &system_program::ID,
-        },
-        make_fixed_price::Params {
-            amount: offer_amount / 2,
-            quote_mint: mint,
-        },
-    );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&buyer])
-        .await
-        .unwrap();
-
-    // Buy fixed price
-
-    let ix = buy_fixed_price(
-        buy_fixed_price::Accounts {
-            fixed_price_offer: &fixed_price_key,
-            buyer: &seller.pubkey(),
-            name_account: &name_key,
-            token_destination: &buyer_ata,
-            token_source: &seller_ata,
-            fee_account: &fee_account,
-            spl_token_program: &spl_token::ID,
-            name_service_program: &spl_name_service::ID,
-        },
-        buy_fixed_price::Params {},
-    );
-
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&seller])
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
         .await
         .unwrap();
 }
