@@ -4,7 +4,7 @@ use solana_program::program_pack::Pack;
 
 use crate::{
     cpi::Cpi,
-    state::{CentralState, NftRecord, Tag, META_SYMBOL, MINT_PREFIX, SELLER_BASIS},
+    state::{CentralState, NftRecord, Tag, META_SYMBOL, MINT_PREFIX, SELLER_BASIS, CREATOR},
     utils::check_name,
 };
 
@@ -289,11 +289,6 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     // Create metadata
     if accounts.metadata_account.data_is_empty() {
         msg!("+ Creating metadata");
-        let creator = Creator {
-            address: central_key,
-            verified: true,
-            share: 100,
-        };
         let ix = create_metadata_accounts_v2(
             mpl_token_metadata::ID,
             *accounts.metadata_account.key,
@@ -304,7 +299,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             name,
             META_SYMBOL.to_string(),
             uri,
-            Some(vec![creator]),
+            Some(vec![CREATOR]),
             SELLER_BASIS,
             true,
             true,

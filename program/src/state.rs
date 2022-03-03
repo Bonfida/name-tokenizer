@@ -2,6 +2,7 @@ use crate::error::OfferError;
 use {
     bonfida_utils::BorshSize,
     borsh::{BorshDeserialize, BorshSerialize},
+    mpl_token_metadata::state::Creator,
     solana_program::{
         account_info::AccountInfo, program_error::ProgramError, pubkey, pubkey::Pubkey,
     },
@@ -14,6 +15,14 @@ pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
 pub const SELLER_BASIS: u16 = 500;
 
 pub const META_SYMBOL: &str = ".sol";
+
+pub const CREATOR_KEY: Pubkey = pubkey!("94xt1Eyc56YDU6MtV7KsG8xfeRqd7z272g14tBHztnUM");
+
+pub const CREATOR: Creator = Creator {
+    address: CREATOR_KEY,
+    verified: true,
+    share: 100,
+};
 
 #[derive(BorshSerialize, BorshDeserialize, BorshSize, PartialEq)]
 #[allow(missing_docs)]
