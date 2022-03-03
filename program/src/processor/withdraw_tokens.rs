@@ -89,14 +89,13 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     }
 }
 
-// Token owner is the main source of truth
-// If the NFT is owned by a program then the source of truth
-// is the NftRecord owner field
+// NFT record is active -> Correct owner is the token holder
+// NFT record is inactive -> Correct owner is the latest person who redeemed
 
 pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let accounts = Accounts::parse(accounts, program_id)?;
 
-    let nft_record = NftRecord::from_account_info(accounts.nft_record, Tag::ActiveRecord)
+    let mut nft_record = NftRecord::from_account_info(accounts.nft_record, Tag::ActiveRecord)
         .or_else(|_| NftRecord::from_account_info(accounts.nft_record, Tag::InactiveRecord))?;
 
     let nft = Account::unpack(&accounts.nft.data.borrow())?;
@@ -106,9 +105,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         return Err(ProgramError::InvalidAccountData);
     }
 
-    let user_owned = *accounts.nft_owner.owner == Pubkey::default();
-
-    if user_owned {
+    if nft_record.is_active() {
         check_account_key(accounts.nft_owner, &nft.owner)?;
     } else {
         check_account_key(accounts.nft_owner, &nft_record.owner)?
@@ -157,6 +154,10 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
 
     **nft_record_lamports -= lamports_to_withdraw;
     **nft_owner_lamports += lamports_to_withdraw;
+
+    // Update NFT record owner
+    nft_record.owner = *accounts.nft_owner.key;
+    nft_record.save(&mut accounts.nft_record.data.borrow_mut());
 
     Ok(())
 }

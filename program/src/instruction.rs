@@ -9,7 +9,7 @@ use {
 #[derive(BorshDeserialize, BorshSerialize, FromPrimitive)]
 pub enum ProgramInstruction {
     /// Create central state
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ✅        | ❌      | The central state account  |
@@ -17,7 +17,7 @@ pub enum ProgramInstruction {
     /// | 2     | ❌        | ❌      | The system program account |
     CreateCentralState,
     /// Tokenize a domain name
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                          |
     /// | ---------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                  |
@@ -35,7 +35,7 @@ pub enum ProgramInstruction {
     /// | 12    | ❌        | ❌      | Rent sysvar account                  |
     CreateNft,
     /// Redeem a tokenized domain name
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                               |
     /// | --------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                       |
@@ -48,7 +48,7 @@ pub enum ProgramInstruction {
     RedeemNft,
     /// Withdraw funds that have been sent to the escrow
     /// while the domain was tokenized
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                                |
     /// | ---------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The token account holding the NFT          |
