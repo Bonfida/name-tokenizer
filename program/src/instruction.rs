@@ -9,7 +9,7 @@ use {
 #[derive(BorshDeserialize, BorshSerialize, FromPrimitive)]
 pub enum ProgramInstruction {
     /// Create central state
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ✅        | ❌      | The central state account  |
@@ -17,7 +17,7 @@ pub enum ProgramInstruction {
     /// | 2     | ❌        | ❌      | The system program account |
     CreateCentralState,
     /// Tokenize a domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                          |
     /// | ---------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                  |
@@ -31,9 +31,11 @@ pub enum ProgramInstruction {
     /// | 8     | ❌        | ❌      | The metadata program account         |
     /// | 9     | ❌        | ❌      | The system program account           |
     /// | 10    | ❌        | ❌      | The SPL name service program account |
+    /// | 11    | ❌        | ❌      | Associated token account program     |
+    /// | 12    | ❌        | ❌      | Rent sysvar account                  |
     CreateNft,
     /// Redeem a tokenized domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                               |
     /// | --------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                       |
@@ -46,7 +48,7 @@ pub enum ProgramInstruction {
     RedeemNft,
     /// Withdraw funds that have been sent to the escrow
     /// while the domain was tokenized
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                                |
     /// | ---------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The token account holding the NFT          |
@@ -55,6 +57,7 @@ pub enum ProgramInstruction {
     /// | 3     | ✅        | ❌      | The destination for tokens being withdrawn |
     /// | 4     | ✅        | ❌      | The source for tokens being withdrawn      |
     /// | 5     | ❌        | ❌      | The SPL token program account              |
+    /// | 6     | ❌        | ❌      | The system program account                 |
     WithdrawTokens,
 }
 #[allow(missing_docs)]

@@ -84,8 +84,10 @@ pub struct Accounts<'a, T> {
     /// The SPL name service program account
     pub spl_name_service_program: &'a T,
 
+    /// Associated token account program
     pub ata_program: &'a T,
 
+    /// Rent sysvar account
     pub rent_account: &'a T,
 }
 
