@@ -110,22 +110,23 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         };
 
         // Check keys
-        check_account_key(accounts.spl_token_program, &spl_token::ID).unwrap();
-        check_account_key(accounts.system_program, &system_program::ID).unwrap();
-        check_account_key(accounts.spl_name_service_program, &spl_name_service::ID).unwrap();
-        check_account_key(accounts.rent_account, &sysvar::rent::ID).unwrap();
+        check_account_key(accounts.spl_token_program, &spl_token::ID)?;
+        check_account_key(accounts.metadata_program, &mpl_token_metadata::ID)?;
+        check_account_key(accounts.system_program, &system_program::ID)?;
+        check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
+        check_account_key(accounts.rent_account, &sysvar::rent::ID)?;
 
         // Check owners
-        check_account_owner(accounts.mint, &spl_token::ID).unwrap();
-        check_account_owner(accounts.nft_destination, &spl_token::ID).unwrap();
-        check_account_owner(accounts.name_account, &spl_name_service::ID).unwrap();
+        check_account_owner(accounts.mint, &spl_token::ID)?;
+        check_account_owner(accounts.nft_destination, &spl_token::ID)?;
+        check_account_owner(accounts.name_account, &spl_name_service::ID)?;
         check_account_owner(accounts.nft_record, &system_program::ID)
             .or_else(|_| check_account_owner(accounts.nft_record, program_id))
-            .unwrap();
+            ?;
         check_account_owner(accounts.metadata_account, &system_program::ID)
             .or_else(|_| check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID))
-            .unwrap();
-        check_account_owner(accounts.central_state, program_id).unwrap();
+            ?;
+        check_account_owner(accounts.central_state, program_id)?;
 
         // Check signer
         check_signer(accounts.name_owner)?;
