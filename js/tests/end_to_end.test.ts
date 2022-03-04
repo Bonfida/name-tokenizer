@@ -355,17 +355,6 @@ test("End to end test", async () => {
   /**
    * (7) Send funds to the tokenized domain (tokens + SOL)
    */
-  // ix = [
-  //   Token.createAssociatedTokenAccountInstruction(
-  //     ASSOCIATED_TOKEN_PROGRAM_ID,
-  //     TOKEN_PROGRAM_ID,
-  //     token.token.publicKey,
-  //     nftRecordTokenAtaKey,
-  //     nftRecordKey,
-  //     feePayer.publicKey
-  //   ),
-  // ];
-  // await signAndSendTransactionInstructions(connection, [alice], feePayer, ix);
   await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
 
@@ -404,17 +393,6 @@ test("End to end test", async () => {
   /**
    * (9) Sends funds to the tokenized domain (tokens + SOL)
    */
-  // ix = [
-  //   Token.createAssociatedTokenAccountInstruction(
-  //     ASSOCIATED_TOKEN_PROGRAM_ID,
-  //     TOKEN_PROGRAM_ID,
-  //     token.token.publicKey,
-  //     nftRecordTokenAtaKey,
-  //     nftRecordKey,
-  //     feePayer.publicKey
-  //   ),
-  // ];
-  // await signAndSendTransactionInstructions(connection, [alice], feePayer, ix);
   await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
 
