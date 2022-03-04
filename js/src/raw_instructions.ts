@@ -160,6 +160,7 @@ export class createNftInstruction {
     nameOwner: PublicKey,
     metadataAccount: PublicKey,
     centralState: PublicKey,
+    feePayer: PublicKey,
     splTokenProgram: PublicKey,
     metadataProgram: PublicKey,
     systemProgram: PublicKey,
@@ -202,6 +203,11 @@ export class createNftInstruction {
       pubkey: centralState,
       isSigner: false,
       isWritable: false,
+    });
+    keys.push({
+      pubkey: feePayer,
+      isSigner: false,
+      isWritable: true,
     });
     keys.push({
       pubkey: splTokenProgram,

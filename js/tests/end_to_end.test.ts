@@ -1,16 +1,11 @@
-import { afterAll, beforeAll, expect, jest, test } from "@jest/globals";
-import { ChildProcess } from "child_process";
+import { beforeAll, expect, jest, test } from "@jest/globals";
 import {
   Connection,
   Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
 } from "@solana/web3.js";
-import {
-  spawnLocalSolana,
-  signAndSendTransactionInstructions,
-  sleep,
-} from "./utils";
+import { signAndSendTransactionInstructions, sleep } from "./utils";
 import {
   Token,
   TOKEN_PROGRAM_ID,
@@ -23,7 +18,6 @@ import {
   getHashedName,
 } from "@bonfida/spl-name-service";
 import crypto from "crypto";
-import fs from "fs";
 import {
   createCentralState,
   createMint,
@@ -37,27 +31,23 @@ import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 // Global state initialized once in test startup and cleaned up at test
 // teardown.
-let solana: ChildProcess;
 let connection: Connection;
 let feePayer: Keypair;
-let payerKeyFile: string;
 let programId: PublicKey;
 
 beforeAll(async () => {
-  solana = await spawnLocalSolana();
-  connection = new Connection("https://api.devnet.rpcpool.com/", "finalized");
-  feePayer = Keypair.fromSecretKey(new Uint8Array([]));
+  connection = new Connection(
+    "https://explorer-api.testnet.solana.com/ ",
+    "confirmed"
+  );
+  feePayer = Keypair.generate();
+  const tx = await connection.requestAirdrop(
+    feePayer.publicKey,
+    LAMPORTS_PER_SOL
+  );
+  await connection.confirmTransaction(tx, "confirmed");
+  console.log(`Fee payer airdropped tx ${tx}`);
   programId = NAME_TOKENIZER_ID_DEVNET;
-});
-
-afterAll(() => {
-  if (solana !== undefined) {
-    try {
-      solana.kill();
-    } catch (e) {
-      console.log(e);
-    }
-  }
 });
 
 jest.setTimeout(1_500_000);
@@ -137,6 +127,13 @@ test("End to end test", async () => {
   );
 
   /**
+   * Airdrop Alice
+   */
+  tx = await connection.requestAirdrop(alice.publicKey, LAMPORTS_PER_SOL);
+  await connection.confirmTransaction(tx, "confirmed");
+  aliceExpectedBalance.sol += LAMPORTS_PER_SOL;
+
+  /**
    * Create domain name
    */
   const size = 100 + 96;
@@ -160,15 +157,14 @@ test("End to end test", async () => {
   /**
    * (1) Create central state
    */
-  ix = await createCentralState(feePayer.publicKey, programId);
-  tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  // ix = await createCentralState(feePayer.publicKey, programId);
+  // tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
 
-  console.log(`Create centrale state tx ${tx}`);
+  // console.log(`Create centrale state tx ${tx}`);
 
   /**
    * Verify state
    */
-  await sleep(30_000);
   const [centralKey] = await PublicKey.findProgramAddress(
     [programId.toBuffer()],
     programId
@@ -229,19 +225,25 @@ test("End to end test", async () => {
   /**
    * Verify state
    */
-  await sleep(30_000);
   const mintToken = new Token(connection, mintKey, TOKEN_PROGRAM_ID, feePayer);
   let mintInfo = await mintToken.getMintInfo();
   expect(mintInfo.decimals).toBe(0);
-  expect(mintInfo.freezeAuthority.toBase58()).toBe(centralKey.toBase58());
+  expect(mintInfo.freezeAuthority?.toBase58()).toBe(centralKey.toBase58());
   expect(mintInfo.isInitialized).toBe(true);
-  expect(mintInfo.mintAuthority.toBase58()).toBe(centralKey.toBase58());
+  expect(mintInfo.mintAuthority?.toBase58()).toBe(centralKey.toBase58());
   expect(mintInfo.supply.toNumber()).toBe(0);
 
   /**
    * (3) Create NFT
    */
-  ix = await createNft(name, uri, nameKey, alice.publicKey, programId);
+  ix = await createNft(
+    name,
+    uri,
+    nameKey,
+    alice.publicKey,
+    feePayer.publicKey,
+    programId
+  );
   tx = await signAndSendTransactionInstructions(
     connection,
     [alice],
@@ -254,7 +256,6 @@ test("End to end test", async () => {
   /**
    * Verify state
    */
-  await sleep(30_000);
   mintInfo = await mintToken.getMintInfo();
   expect(mintInfo.supply.toNumber()).toBe(1);
 
@@ -292,8 +293,8 @@ test("End to end test", async () => {
       feePayer.publicKey
     ),
   ];
-  await signAndSendTransactionInstructions(connection, [alice], feePayer, ix);
-  await token.mintInto(aliceTokenAtaKey, mintAmount);
+  await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
 
   aliceExpectedBalance.sol += LAMPORTS_PER_SOL / 2;
@@ -303,8 +304,8 @@ test("End to end test", async () => {
    * (5) Withdraw funds
    */
   ix = await withdrawTokens(
-    connection,
     mintKey,
+    token.token.publicKey,
     alice.publicKey,
     nftRecordKey,
     programId
@@ -326,7 +327,9 @@ test("End to end test", async () => {
   );
 
   expect(aliceExpectedBalance.sol).toBe(fetchedSolBalance);
-  expect(aliceExpectedBalance.token).toBe(fetchedTokenBalance.value.amount);
+  expect(aliceExpectedBalance.token.toString()).toBe(
+    fetchedTokenBalance.value.amount
+  );
 
   /**
    * (6) Transfer NFT to new wallet
@@ -352,18 +355,18 @@ test("End to end test", async () => {
   /**
    * (7) Send funds to the tokenized domain (tokens + SOL)
    */
-  ix = [
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      token.token.publicKey,
-      nftRecordTokenAtaKey,
-      nftRecordKey,
-      feePayer.publicKey
-    ),
-  ];
-  await signAndSendTransactionInstructions(connection, [alice], feePayer, ix);
-  await token.mintInto(aliceTokenAtaKey, mintAmount);
+  // ix = [
+  //   Token.createAssociatedTokenAccountInstruction(
+  //     ASSOCIATED_TOKEN_PROGRAM_ID,
+  //     TOKEN_PROGRAM_ID,
+  //     token.token.publicKey,
+  //     nftRecordTokenAtaKey,
+  //     nftRecordKey,
+  //     feePayer.publicKey
+  //   ),
+  // ];
+  // await signAndSendTransactionInstructions(connection, [alice], feePayer, ix);
+  await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
 
   bobExpectedBalance.sol += LAMPORTS_PER_SOL / 2;
@@ -373,8 +376,8 @@ test("End to end test", async () => {
    * (8) Withdraw funds
    */
   ix = await withdrawTokens(
-    connection,
     mintKey,
+    token.token.publicKey,
     bob.publicKey,
     nftRecordKey,
     programId
@@ -394,23 +397,25 @@ test("End to end test", async () => {
   fetchedTokenBalance = await connection.getTokenAccountBalance(bobTokenAtaKey);
 
   expect(bobExpectedBalance.sol).toBe(fetchedSolBalance);
-  expect(bobExpectedBalance.token).toBe(fetchedTokenBalance.value.amount);
+  expect(bobExpectedBalance.token.toString()).toBe(
+    fetchedTokenBalance.value.amount
+  );
 
   /**
    * (9) Sends funds to the tokenized domain (tokens + SOL)
    */
-  ix = [
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      token.token.publicKey,
-      nftRecordTokenAtaKey,
-      nftRecordKey,
-      feePayer.publicKey
-    ),
-  ];
-  await signAndSendTransactionInstructions(connection, [alice], feePayer, ix);
-  await token.mintInto(aliceTokenAtaKey, mintAmount);
+  // ix = [
+  //   Token.createAssociatedTokenAccountInstruction(
+  //     ASSOCIATED_TOKEN_PROGRAM_ID,
+  //     TOKEN_PROGRAM_ID,
+  //     token.token.publicKey,
+  //     nftRecordTokenAtaKey,
+  //     nftRecordKey,
+  //     feePayer.publicKey
+  //   ),
+  // ];
+  // await signAndSendTransactionInstructions(connection, [alice], feePayer, ix);
+  await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
 
   bobExpectedBalance.sol += LAMPORTS_PER_SOL / 2;
@@ -431,7 +436,6 @@ test("End to end test", async () => {
   /**
    * Verify state
    */
-  await sleep(30_000);
   mintInfo = await mintToken.getMintInfo();
   expect(mintInfo.supply.toNumber()).toBe(0);
 
@@ -446,8 +450,8 @@ test("End to end test", async () => {
    * (11) Withdraw funds
    */
   ix = await withdrawTokens(
-    connection,
     mintKey,
+    token.token.publicKey,
     bob.publicKey,
     nftRecordKey,
     programId
@@ -463,17 +467,25 @@ test("End to end test", async () => {
   /**
    * Verify state
    */
-  await sleep(30_000);
   fetchedSolBalance = await connection.getBalance(bob.publicKey);
   fetchedTokenBalance = await connection.getTokenAccountBalance(bobTokenAtaKey);
 
   expect(bobExpectedBalance.sol).toBe(fetchedSolBalance);
-  expect(bobExpectedBalance.token).toBe(fetchedTokenBalance.value.amount);
+  expect(bobExpectedBalance.token.toString()).toBe(
+    fetchedTokenBalance.value.amount
+  );
 
   /**
    * (12) Create NFT again
    */
-  ix = await createNft(name, uri, nameKey, bob.publicKey, programId);
+  ix = await createNft(
+    name,
+    uri,
+    nameKey,
+    bob.publicKey,
+    feePayer.publicKey,
+    programId
+  );
   tx = await signAndSendTransactionInstructions(
     connection,
     [bob],
@@ -484,13 +496,12 @@ test("End to end test", async () => {
   /**
    * Verify state
    */
-  await sleep(30_000);
   mintInfo = await mintToken.getMintInfo();
   expect(mintInfo.decimals).toBe(0);
-  expect(mintInfo.freezeAuthority.toBase58()).toBe(centralKey.toBase58());
+  expect(mintInfo.freezeAuthority?.toBase58()).toBe(centralKey.toBase58());
   expect(mintInfo.isInitialized).toBe(true);
-  expect(mintInfo.mintAuthority.toBase58()).toBe(centralKey.toBase58());
-  expect(mintInfo.supply.toNumber()).toBe(0);
+  expect(mintInfo.mintAuthority?.toBase58()).toBe(centralKey.toBase58());
+  expect(mintInfo.supply.toNumber()).toBe(1);
 
   nftRecord = await NftRecord.retrieve(connection, nftRecordKey);
   expect(nftRecord.nameAccount.toBase58()).toBe(nameKey.toBase58());
@@ -508,9 +519,11 @@ test("End to end test", async () => {
   expect(metadata.data.data.sellerFeeBasisPoints).toBe(500);
   expect(metadata.data.data.symbol).toBe(".sol");
   expect(metadata.data.data.uri).toBe(uri);
-  expect(metadata.data.isMutable).toBe(true);
+  expect(metadata.data.isMutable).toBe(1);
   expect(metadata.data.mint).toBe(mintKey.toBase58());
   expect(metadata.data.updateAuthority).toBe(centralKey.toBase58());
 
-  expect(metadata.data.data.creators.toString()).toBe("");
+  expect(JSON.stringify(metadata.data.data.creators)).toBe(
+    `[{"address":"${centralKey.toBase58()}","verified":1,"share":0},{"address":"94xt1Eyc56YDU6MtV7KsG8xfeRqd7z272g14tBHztnUM","verified":0,"share":100}]`
+  );
 });

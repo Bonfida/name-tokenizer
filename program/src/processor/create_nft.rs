@@ -67,6 +67,10 @@ pub struct Accounts<'a, T> {
     /// The central state account
     pub central_state: &'a T,
 
+    /// The fee payer account
+    #[cons(writable)]
+    pub fee_payer: &'a T,
+
     /// The SPL token program account
     pub spl_token_program: &'a T,
 
@@ -97,6 +101,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             name_owner: next_account_info(accounts_iter)?,
             metadata_account: next_account_info(accounts_iter)?,
             central_state: next_account_info(accounts_iter)?,
+            fee_payer: next_account_info(accounts_iter)?,
             spl_token_program: next_account_info(accounts_iter)?,
             metadata_program: next_account_info(accounts_iter)?,
             system_program: next_account_info(accounts_iter)?,
@@ -177,7 +182,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
         Cpi::create_account(
             program_id,
             accounts.system_program,
-            accounts.name_owner,
+            accounts.fee_payer,
             accounts.nft_record,
             seeds,
             nft_record.borsh_len(),
@@ -232,7 +237,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             *accounts.metadata_account.key,
             mint,
             central_key,
-            *accounts.name_owner.key,
+            *accounts.fee_payer.key,
             central_key,
             name,
             META_SYMBOL.to_string(),
@@ -252,7 +257,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
                 accounts.rent_account.clone(),
                 accounts.mint.clone(),
                 accounts.central_state.clone(),
-                accounts.name_owner.clone(),
+                accounts.fee_payer.clone(),
             ],
             &[seeds],
         )?;

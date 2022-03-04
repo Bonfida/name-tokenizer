@@ -25,7 +25,9 @@ import { NAME_PROGRAM_ID } from "@bonfida/spl-name-service";
 
 export const NAME_TOKENIZER_ID = PublicKey.default;
 
-export const NAME_TOKENIZER_ID_DEVNET = PublicKey.default;
+export const NAME_TOKENIZER_ID_DEVNET = new PublicKey(
+  "9cfHjaopLVMFEyAn3pnKAN1eXR6KsS84zSTfCDYdfJ2a"
+);
 
 export const createCentralState = async (
   feePayer: PublicKey,
@@ -80,6 +82,7 @@ export const createNft = async (
   uri: string,
   nameAccount: PublicKey,
   nameOwner: PublicKey,
+  feePayer: PublicKey,
   programId: PublicKey
 ) => {
   const [centralKey] = await PublicKey.findProgramAddress(
@@ -112,6 +115,7 @@ export const createNft = async (
     nameOwner,
     metadataAccount,
     centralKey,
+    feePayer,
     TOKEN_PROGRAM_ID,
     MetadataProgram.PUBKEY,
     SystemProgram.programId,
@@ -156,26 +160,32 @@ export const redeemNft = async (
 };
 
 export const withdrawTokens = async (
-  connection: Connection,
-  nft: PublicKey,
+  nftMint: PublicKey,
+  tokenMint: PublicKey,
   nftOwner: PublicKey,
   nftRecord: PublicKey,
   programId: PublicKey
 ) => {
-  const record = await NftRecord.retrieve(connection, nftRecord);
-
   const tokenDestination = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
-    record.nftMint,
+    tokenMint,
     nftOwner
   );
 
   const tokenSource = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
-    record.nftMint,
-    nftRecord
+    tokenMint,
+    nftRecord,
+    true
+  );
+
+  const nft = await Token.getAssociatedTokenAddress(
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+    nftMint,
+    nftOwner
   );
 
   const ix = new withdrawTokensInstruction().getInstruction(

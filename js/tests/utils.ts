@@ -113,9 +113,11 @@ export const signAndSendTransactionInstructions = async (
   tx.feePayer = feePayer.publicKey;
   signers = signers ? [...signers, feePayer] : [];
   tx.add(...txInstructions);
-  return await connection.sendTransaction(tx, signers, {
+  const signature = await connection.sendTransaction(tx, signers, {
     skipPreflight: false,
   });
+  await connection.confirmTransaction(signature, "confirmed");
+  return signature;
 };
 
 export class TokenMint {

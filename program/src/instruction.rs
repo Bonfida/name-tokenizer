@@ -11,7 +11,7 @@ use {
 #[derive(BorshDeserialize, BorshSerialize, FromPrimitive)]
 pub enum ProgramInstruction {
     /// Create central state
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                |
     /// | ------------------------------------------------------ |
     /// | 0     | ✅        | ❌      | The central state account  |
@@ -19,7 +19,7 @@ pub enum ProgramInstruction {
     /// | 2     | ❌        | ❌      | The system program account |
     CreateCentralState,
     /// Create the NFT mint
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                   |
     /// | --------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT           |
@@ -31,7 +31,7 @@ pub enum ProgramInstruction {
     /// | 6     | ❌        | ❌      | Fee payer account             |
     CreateMint,
     /// Tokenize a domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                          |
     /// | ---------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                  |
@@ -41,14 +41,15 @@ pub enum ProgramInstruction {
     /// | 4     | ✅        | ✅      | The domain name owner                |
     /// | 5     | ✅        | ❌      | The metadata account                 |
     /// | 6     | ❌        | ❌      | The central state account            |
-    /// | 7     | ❌        | ❌      | The SPL token program account        |
-    /// | 8     | ❌        | ❌      | The metadata program account         |
-    /// | 9     | ❌        | ❌      | The system program account           |
-    /// | 10    | ❌        | ❌      | The SPL name service program account |
-    /// | 11    | ❌        | ❌      | Rent sysvar account                  |
+    /// | 7     | ✅        | ❌      | The fee payer account                |
+    /// | 8     | ❌        | ❌      | The SPL token program account        |
+    /// | 9     | ❌        | ❌      | The metadata program account         |
+    /// | 10    | ❌        | ❌      | The system program account           |
+    /// | 11    | ❌        | ❌      | The SPL name service program account |
+    /// | 12    | ❌        | ❌      | Rent sysvar account                  |
     CreateNft,
     /// Redeem a tokenized domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                               |
     /// | --------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                       |
@@ -61,7 +62,7 @@ pub enum ProgramInstruction {
     RedeemNft,
     /// Withdraw funds that have been sent to the escrow
     /// while the domain was tokenized
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                                |
     /// | ---------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The token account holding the NFT          |

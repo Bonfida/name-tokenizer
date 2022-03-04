@@ -30,6 +30,7 @@ pub fn check_name(name: &str, account: &AccountInfo) -> ProgramResult {
 
     if &name_account_key != account.key {
         msg!("Provided wrong name account");
+        #[cfg(not(feature = "devnet"))]
         return Err(ProgramError::InvalidArgument);
     }
 

@@ -152,6 +152,7 @@ async fn test_offer() {
             system_program: &system_program::ID,
             spl_name_service_program: &spl_name_service::ID,
             rent_account: &sysvar::rent::ID,
+            fee_payer: &prg_test_ctx.payer.pubkey(),
         },
         create_nft::Params {
             name: name.to_string(),
