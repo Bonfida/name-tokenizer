@@ -1,4 +1,6 @@
-pub use crate::processor::{create_central_state, create_nft, redeem_nft, withdraw_tokens};
+pub use crate::processor::{
+    create_central_state, create_mint, create_nft, redeem_nft, withdraw_tokens,
+};
 use {
     bonfida_utils::InstructionsAccount,
     borsh::{BorshDeserialize, BorshSerialize},
@@ -16,6 +18,18 @@ pub enum ProgramInstruction {
     /// | 1     | ✅        | ✅      | The fee payer              |
     /// | 2     | ❌        | ❌      | The system program account |
     CreateCentralState,
+    /// Create the NFT mint
+    ///
+    /// | Index | Writable | Signer | Description                   |
+    /// | --------------------------------------------------------- |
+    /// | 0     | ✅        | ❌      | The mint of the NFT           |
+    /// | 1     | ✅        | ❌      | The domain name account       |
+    /// | 2     | ❌        | ❌      | The central state account     |
+    /// | 3     | ❌        | ❌      | The SPL token program account |
+    /// | 4     | ❌        | ❌      | The system program account    |
+    /// | 5     | ❌        | ❌      | Rent sysvar account           |
+    /// | 6     | ❌        | ❌      | Fee payer account             |
+    CreateMint,
     /// Tokenize a domain name
     ///
     /// | Index | Writable | Signer | Description                          |
@@ -31,8 +45,7 @@ pub enum ProgramInstruction {
     /// | 8     | ❌        | ❌      | The metadata program account         |
     /// | 9     | ❌        | ❌      | The system program account           |
     /// | 10    | ❌        | ❌      | The SPL name service program account |
-    /// | 11    | ❌        | ❌      | Associated token account program     |
-    /// | 12    | ❌        | ❌      | Rent sysvar account                  |
+    /// | 11    | ❌        | ❌      | Rent sysvar account                  |
     CreateNft,
     /// Redeem a tokenized domain name
     ///
@@ -70,6 +83,13 @@ pub fn create_central_state(
         ProgramInstruction::CreateCentralState as u8,
         params,
     )
+}
+#[allow(missing_docs)]
+pub fn create_mint(
+    accounts: create_mint::Accounts<Pubkey>,
+    params: create_mint::Params,
+) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::CreateMint as u8, params)
 }
 #[allow(missing_docs)]
 pub fn create_nft(

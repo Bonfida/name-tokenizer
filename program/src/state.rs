@@ -18,9 +18,9 @@ pub const META_SYMBOL: &str = ".sol";
 
 pub const CREATOR_KEY: Pubkey = pubkey!("94xt1Eyc56YDU6MtV7KsG8xfeRqd7z272g14tBHztnUM");
 
-pub const CREATOR: Creator = Creator {
+pub const CREATOR_FEE: Creator = Creator {
     address: CREATOR_KEY,
-    verified: true,
+    verified: false,
     share: 100,
 };
 

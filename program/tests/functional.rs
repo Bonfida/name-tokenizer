@@ -3,7 +3,7 @@ use {
     mpl_token_metadata::pda::find_metadata_account,
     name_tokenizer::{
         entrypoint::process_instruction,
-        instruction::{create_central_state, create_nft, redeem_nft, withdraw_tokens},
+        instruction::{create_central_state, create_mint, create_nft, redeem_nft, withdraw_tokens},
         state::{CentralState, NftRecord, MINT_PREFIX, ROOT_DOMAIN_ACCOUNT},
     },
     solana_program::{hash::hashv, pubkey::Pubkey, system_program, sysvar},
@@ -100,10 +100,40 @@ async fn test_offer() {
         .unwrap();
 
     ////
-    // Create NFT
+    // Create mint
     ////
     let (nft_mint, _) =
         Pubkey::find_program_address(&[MINT_PREFIX, &name_key.to_bytes()], &name_tokenizer::ID);
+
+    let ix = create_mint(
+        create_mint::Accounts {
+            mint: &nft_mint,
+            central_state: &central_key,
+            name_account: &name_key,
+            spl_token_program: &spl_token::ID,
+            rent_account: &sysvar::rent::ID,
+            fee_payer: &prg_test_ctx.payer.pubkey(),
+            system_program: &system_program::ID,
+        },
+        create_mint::Params {},
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap();
+
+    ////
+    // Create user ATA
+    ////
+
+    let ix = create_associated_token_account(&user.pubkey(), &user.pubkey(), &nft_mint);
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
+        .await
+        .unwrap();
+
+    ////
+    // Create NFT
+    ////
+
     let nft_ata = get_associated_token_address(&user.pubkey(), &nft_mint);
     let (nft_record, _) = NftRecord::find_key(&name_key, &name_tokenizer::ID);
     let (metadata_key, _) = find_metadata_account(&nft_mint);
@@ -121,7 +151,6 @@ async fn test_offer() {
             metadata_program: &mpl_token_metadata::ID,
             system_program: &system_program::ID,
             spl_name_service_program: &spl_name_service::ID,
-            ata_program: &spl_associated_token_account::ID,
             rent_account: &sysvar::rent::ID,
         },
         create_nft::Params {

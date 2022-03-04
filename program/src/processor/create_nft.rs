@@ -1,10 +1,8 @@
 //! Tokenize a domain name
 
-use solana_program::program_pack::Pack;
-
 use crate::{
     cpi::Cpi,
-    state::{CentralState, NftRecord, Tag, META_SYMBOL, MINT_PREFIX, SELLER_BASIS, CREATOR},
+    state::{CentralState, NftRecord, Tag, CREATOR_FEE, META_SYMBOL, MINT_PREFIX, SELLER_BASIS},
     utils::check_name,
 };
 
@@ -23,15 +21,12 @@ use {
         msg,
         program::{invoke, invoke_signed},
         program_error::ProgramError,
+        program_pack::Pack,
         pubkey::Pubkey,
         system_program, sysvar,
     },
-    spl_associated_token_account::create_associated_token_account,
     spl_name_service::instruction::transfer,
-    spl_token::{
-        instruction::{initialize_mint, mint_to},
-        state::Mint,
-    },
+    spl_token::{instruction::mint_to, state::Mint},
 };
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
@@ -84,9 +79,6 @@ pub struct Accounts<'a, T> {
     /// The SPL name service program account
     pub spl_name_service_program: &'a T,
 
-    /// Associated token account program
-    pub ata_program: &'a T,
-
     /// Rent sysvar account
     pub rent_account: &'a T,
 }
@@ -109,7 +101,6 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             metadata_program: next_account_info(accounts_iter)?,
             system_program: next_account_info(accounts_iter)?,
             spl_name_service_program: next_account_info(accounts_iter)?,
-            ata_program: next_account_info(accounts_iter)?,
             rent_account: next_account_info(accounts_iter)?,
         };
 
@@ -117,16 +108,11 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(accounts.spl_token_program, &spl_token::ID).unwrap();
         check_account_key(accounts.system_program, &system_program::ID).unwrap();
         check_account_key(accounts.spl_name_service_program, &spl_name_service::ID).unwrap();
-        check_account_key(accounts.ata_program, &spl_associated_token_account::ID).unwrap();
         check_account_key(accounts.rent_account, &sysvar::rent::ID).unwrap();
 
         // Check owners
-        check_account_owner(accounts.mint, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.mint, &spl_token::ID))
-            .unwrap();
-        check_account_owner(accounts.nft_destination, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.nft_destination, &spl_token::ID))
-            .unwrap();
+        check_account_owner(accounts.mint, &spl_token::ID).unwrap();
+        check_account_owner(accounts.nft_destination, &spl_token::ID).unwrap();
         check_account_owner(accounts.name_account, &spl_name_service::ID).unwrap();
         check_account_owner(accounts.nft_record, &system_program::ID)
             .or_else(|_| check_account_owner(accounts.nft_record, program_id))
@@ -150,7 +136,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     let (central_key, central_nonce) = CentralState::find_key(program_id);
     check_account_key(accounts.central_state, &central_key)?;
 
-    let (mint, mint_nonce) = Pubkey::find_program_address(
+    let (mint, _) = Pubkey::find_program_address(
         &[MINT_PREFIX, &accounts.name_account.key.to_bytes()],
         program_id,
     );
@@ -167,6 +153,13 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     // Verify metadata PDA
     let (metadata_key, _) = find_metadata_account(&mint);
     check_account_key(accounts.metadata_account, &metadata_key)?;
+
+    // Verify mint
+    let mint_info = Mint::unpack(&accounts.mint.data.borrow())?;
+    if mint_info.supply != 0 {
+        msg!("Expected suply == 0 and received {}", mint_info.supply);
+        return Err(ProgramError::InvalidAccountData);
+    }
 
     if accounts.nft_record.data_is_empty() {
         msg!("+ Creating NFT record");
@@ -204,66 +197,6 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
         nft_record.save(&mut accounts.nft_record.data.borrow_mut());
     }
 
-    // Create mint
-    if accounts.mint.data_is_empty() {
-        msg!("+ Creating mint");
-
-        // Create mint account
-        let seeds: &[&[u8]] = &[
-            MINT_PREFIX,
-            &accounts.name_account.key.to_bytes(),
-            &[mint_nonce],
-        ];
-        Cpi::create_account(
-            &spl_token::ID,
-            accounts.system_program,
-            accounts.name_owner,
-            accounts.mint,
-            seeds,
-            Mint::LEN,
-        )?;
-
-        // Initialize mint
-        let ix = initialize_mint(&spl_token::ID, &mint, &central_key, Some(&central_key), 0)?;
-        invoke_signed(
-            &ix,
-            &[
-                accounts.spl_token_program.clone(),
-                accounts.mint.clone(),
-                accounts.rent_account.clone(),
-            ],
-            &[seeds],
-        )?;
-
-        // A token account cannot be initialized before the mint
-        msg!("+ Creating user ATA");
-        let ix = create_associated_token_account(
-            accounts.name_owner.key,
-            accounts.name_owner.key,
-            accounts.mint.key,
-        );
-        invoke(
-            &ix,
-            &[
-                accounts.ata_program.clone(),
-                accounts.spl_token_program.clone(),
-                accounts.rent_account.clone(),
-                accounts.name_owner.clone(),
-                accounts.nft_destination.clone(),
-                accounts.mint.clone(),
-            ],
-        )?;
-    } else {
-        msg!("+ Mint already exists");
-        let mint_info = Mint::unpack(&accounts.mint.data.borrow())?;
-
-        // If the mint already exists the supply should be 0
-        if mint_info.supply != 0 {
-            msg!("Expected suply == 0 and received {}", mint_info.supply);
-            return Err(ProgramError::InvalidAccountData);
-        }
-    }
-
     // Mint token
     let ix = mint_to(
         &spl_token::ID,
@@ -289,6 +222,11 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     // Create metadata
     if accounts.metadata_account.data_is_empty() {
         msg!("+ Creating metadata");
+        let central_creator = Creator {
+            address: central_key,
+            verified: true,
+            share: 0,
+        };
         let ix = create_metadata_accounts_v2(
             mpl_token_metadata::ID,
             *accounts.metadata_account.key,
@@ -299,7 +237,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             name,
             META_SYMBOL.to_string(),
             uri,
-            Some(vec![CREATOR]),
+            Some(vec![central_creator, CREATOR_FEE]),
             SELLER_BASIS,
             true,
             true,
