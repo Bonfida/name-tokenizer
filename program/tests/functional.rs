@@ -23,7 +23,8 @@ use crate::common::utils::{mint_bootstrap, sign_send_instructions};
 #[tokio::test]
 async fn test_offer() {
     // Create program and test environment
-    let user = Keypair::new();
+    let alice = Keypair::new();
+    let bob = Keypair::new();
     let mint_authority = Keypair::new();
 
     let mut program_test = ProgramTest::new(
@@ -49,7 +50,7 @@ async fn test_offer() {
 
     let root_domain_data = spl_name_service::state::NameRecordHeader {
         parent_name: ROOT_DOMAIN_ACCOUNT,
-        owner: user.pubkey(),
+        owner: alice.pubkey(),
         class: Pubkey::default(),
     }
     .try_to_vec()
@@ -66,7 +67,14 @@ async fn test_offer() {
     );
 
     program_test.add_account(
-        user.pubkey(),
+        alice.pubkey(),
+        Account {
+            lamports: 100_000_000_000,
+            ..Account::default()
+        },
+    );
+    program_test.add_account(
+        bob.pubkey(),
         Account {
             lamports: 100_000_000_000,
             ..Account::default()
@@ -111,11 +119,15 @@ async fn test_offer() {
         .unwrap();
 
     ////
-    // Create user ATA
+    // Create Alice and Bob ATAs
     ////
 
-    let ix = create_associated_token_account(&user.pubkey(), &user.pubkey(), &nft_mint);
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
+    let ix = create_associated_token_account(&alice.pubkey(), &alice.pubkey(), &nft_mint);
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
+        .await
+        .unwrap();
+    let ix = create_associated_token_account(&bob.pubkey(), &bob.pubkey(), &nft_mint);
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
         .await
         .unwrap();
 
@@ -123,17 +135,18 @@ async fn test_offer() {
     // Create NFT
     ////
 
-    let nft_ata = get_associated_token_address(&user.pubkey(), &nft_mint);
+    let alice_nft_ata = get_associated_token_address(&alice.pubkey(), &nft_mint);
+    let bob_nft_ata = get_associated_token_address(&bob.pubkey(), &nft_mint);
     let (nft_record, _) = NftRecord::find_key(&name_key, &name_tokenizer::ID);
     let (metadata_key, _) = find_metadata_account(&nft_mint);
 
     let ix = create_nft(
         create_nft::Accounts {
             mint: &nft_mint,
-            nft_destination: &nft_ata,
+            nft_destination: &alice_nft_ata,
             name_account: &name_key,
             nft_record: &nft_record,
-            name_owner: &user.pubkey(),
+            name_owner: &alice.pubkey(),
             metadata_account: &metadata_key,
             central_state: &central_key,
             spl_token_program: &spl_token::ID,
@@ -149,7 +162,7 @@ async fn test_offer() {
         },
     );
 
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
         .await
         .unwrap();
 
@@ -159,8 +172,8 @@ async fn test_offer() {
     let ix = redeem_nft(
         redeem_nft::Accounts {
             mint: &nft_mint,
-            nft_source: &nft_ata,
-            nft_owner: &user.pubkey(),
+            nft_source: &alice_nft_ata,
+            nft_owner: &alice.pubkey(),
             nft_record: &nft_record,
             name_account: &name_key,
             spl_token_program: &spl_token::ID,
@@ -169,7 +182,7 @@ async fn test_offer() {
         redeem_nft::Params {},
     );
 
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
         .await
         .unwrap();
 
@@ -177,7 +190,8 @@ async fn test_offer() {
     // Send tokens
     ////
     let usdc_ata_program = get_associated_token_address(&nft_record, &usdc_mint);
-    let usdc_ata_user = get_associated_token_address(&user.pubkey(), &usdc_mint);
+    let usdc_ata_alice = get_associated_token_address(&alice.pubkey(), &usdc_mint);
+    let usdc_ata_bob = get_associated_token_address(&bob.pubkey(), &usdc_mint);
 
     let ix = create_associated_token_account(&prg_test_ctx.payer.pubkey(), &nft_record, &usdc_mint);
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
@@ -185,7 +199,12 @@ async fn test_offer() {
         .unwrap();
 
     let ix =
-        create_associated_token_account(&prg_test_ctx.payer.pubkey(), &user.pubkey(), &usdc_mint);
+        create_associated_token_account(&prg_test_ctx.payer.pubkey(), &alice.pubkey(), &usdc_mint);
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap();
+    let ix =
+        create_associated_token_account(&prg_test_ctx.payer.pubkey(), &bob.pubkey(), &usdc_mint);
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
         .await
         .unwrap();
@@ -208,17 +227,81 @@ async fn test_offer() {
     ////
     let ix = withdraw_tokens(
         withdraw_tokens::Accounts {
-            nft: &nft_ata,
-            nft_owner: &user.pubkey(),
+            nft: &alice_nft_ata,
+            nft_owner: &alice.pubkey(),
             nft_record: &nft_record,
             token_source: &usdc_ata_program,
-            token_destination: &usdc_ata_user,
+            token_destination: &usdc_ata_alice,
             spl_token_program: &spl_token::ID,
             system_program: &system_program::ID,
         },
         withdraw_tokens::Params {},
     );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&user])
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
+        .await
+        .unwrap();
+
+    ////
+    // Bob tries to withdraw tokens
+    ////
+
+    let ix = withdraw_tokens(
+        withdraw_tokens::Accounts {
+            nft: &alice_nft_ata,
+            nft_owner: &bob.pubkey(),
+            nft_record: &nft_record,
+            token_source: &usdc_ata_program,
+            token_destination: &usdc_ata_bob,
+            spl_token_program: &spl_token::ID,
+            system_program: &system_program::ID,
+        },
+        withdraw_tokens::Params {},
+    );
+    let err = sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
+        .await
+        .is_err();
+    assert!(err);
+
+    ////
+    // Alice transfer domain to Bob
+    ////
+    let ix = spl_name_service::instruction::transfer(
+        spl_name_service::ID,
+        bob.pubkey(),
+        name_key,
+        alice.pubkey(),
+        None,
+    )
+    .unwrap();
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
+        .await
+        .unwrap();
+
+    ////
+    // Bob creates NFT again
+    ////
+    let ix = create_nft(
+        create_nft::Accounts {
+            mint: &nft_mint,
+            nft_destination: &bob_nft_ata,
+            name_account: &name_key,
+            nft_record: &nft_record,
+            name_owner: &bob.pubkey(),
+            metadata_account: &metadata_key,
+            central_state: &central_key,
+            spl_token_program: &spl_token::ID,
+            metadata_program: &mpl_token_metadata::ID,
+            system_program: &system_program::ID,
+            spl_name_service_program: &spl_name_service::ID,
+            rent_account: &sysvar::rent::ID,
+            fee_payer: &prg_test_ctx.payer.pubkey(),
+        },
+        create_nft::Params {
+            name: name.to_string(),
+            uri: "test".to_string(),
+        },
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
         .await
         .unwrap();
 }
