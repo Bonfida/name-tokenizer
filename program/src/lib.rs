@@ -1,4 +1,5 @@
-use solana_program::declare_id;
+use bonfida_utils::declare_id_with_central_state;
+
 #[doc(hidden)]
 pub mod entrypoint;
 #[doc(hidden)]
@@ -15,4 +16,4 @@ pub(crate) mod utils;
 #[allow(missing_docs)]
 pub mod cpi;
 
-declare_id!("8cLRM8yC7gdtEPLxjSkekxXBQHX35hnb4SVbf8RhDSCK");
+declare_id_with_central_state!("B7nUxWuwxE73G2J8LbrDxeSDg2zGTpz5daeaZoMvbzS7");

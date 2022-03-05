@@ -1,9 +1,6 @@
 //! Create the NFT mint
 
-use crate::{
-    cpi::Cpi,
-    state::{CentralState, MINT_PREFIX},
-};
+use crate::{cpi::Cpi, state::MINT_PREFIX};
 
 use {
     bonfida_utils::{
@@ -56,7 +53,7 @@ pub struct Accounts<'a, T> {
 impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
     pub fn parse(
         accounts: &'a [AccountInfo<'b>],
-        program_id: &Pubkey,
+        _program_id: &Pubkey,
     ) -> Result<Self, ProgramError> {
         let accounts_iter = &mut accounts.iter();
         let accounts = Accounts {
@@ -70,6 +67,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         };
 
         // Check keys
+        check_account_key(accounts.central_state, &crate::central_state::KEY)?;
         check_account_key(accounts.spl_token_program, &spl_token::ID)?;
         check_account_key(accounts.system_program, &system_program::ID)?;
         check_account_key(accounts.rent_account, &sysvar::rent::ID)?;
@@ -77,7 +75,6 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         // Check owners
         check_account_owner(accounts.mint, &system_program::ID)?;
         check_account_owner(accounts.name_account, &spl_name_service::ID)?;
-        check_account_owner(accounts.central_state, program_id)?;
 
         // Check signer
         check_signer(accounts.fee_payer)?;
@@ -88,9 +85,6 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 
 pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let accounts = Accounts::parse(accounts, program_id)?;
-
-    let (central_key, _) = CentralState::find_key(program_id);
-    check_account_key(accounts.central_state, &central_key)?;
 
     let (mint, mint_nonce) = Pubkey::find_program_address(
         &[MINT_PREFIX, &accounts.name_account.key.to_bytes()],
@@ -116,7 +110,13 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     )?;
 
     // Initialize mint
-    let ix = initialize_mint(&spl_token::ID, &mint, &central_key, Some(&central_key), 0)?;
+    let ix = initialize_mint(
+        &spl_token::ID,
+        &mint,
+        &crate::central_state::KEY,
+        Some(&crate::central_state::KEY),
+        0,
+    )?;
     invoke_signed(
         &ix,
         &[

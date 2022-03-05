@@ -1,6 +1,4 @@
-pub use crate::processor::{
-    create_central_state, create_mint, create_nft, redeem_nft, withdraw_tokens,
-};
+pub use crate::processor::{create_mint, create_nft, redeem_nft, withdraw_tokens};
 use {
     bonfida_utils::InstructionsAccount,
     borsh::{BorshDeserialize, BorshSerialize},
@@ -10,16 +8,8 @@ use {
 #[allow(missing_docs)]
 #[derive(BorshDeserialize, BorshSerialize, FromPrimitive)]
 pub enum ProgramInstruction {
-    /// Create central state
-    /// 
-    /// | Index | Writable | Signer | Description                |
-    /// | ------------------------------------------------------ |
-    /// | 0     | ✅        | ❌      | The central state account  |
-    /// | 1     | ✅        | ✅      | The fee payer              |
-    /// | 2     | ❌        | ❌      | The system program account |
-    CreateCentralState,
     /// Create the NFT mint
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                   |
     /// | --------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT           |
@@ -31,7 +21,7 @@ pub enum ProgramInstruction {
     /// | 6     | ❌        | ❌      | Fee payer account             |
     CreateMint,
     /// Tokenize a domain name
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                          |
     /// | ---------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                  |
@@ -49,7 +39,7 @@ pub enum ProgramInstruction {
     /// | 12    | ❌        | ❌      | Rent sysvar account                  |
     CreateNft,
     /// Redeem a tokenized domain name
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                               |
     /// | --------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                       |
@@ -62,7 +52,7 @@ pub enum ProgramInstruction {
     RedeemNft,
     /// Withdraw funds that have been sent to the escrow
     /// while the domain was tokenized
-    /// 
+    ///
     /// | Index | Writable | Signer | Description                                |
     /// | ---------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The token account holding the NFT          |
@@ -74,17 +64,7 @@ pub enum ProgramInstruction {
     /// | 6     | ❌        | ❌      | The system program account                 |
     WithdrawTokens,
 }
-#[allow(missing_docs)]
-pub fn create_central_state(
-    accounts: create_central_state::Accounts<Pubkey>,
-    params: create_central_state::Params,
-) -> Instruction {
-    accounts.get_instruction(
-        crate::ID,
-        ProgramInstruction::CreateCentralState as u8,
-        params,
-    )
-}
+
 #[allow(missing_docs)]
 pub fn create_mint(
     accounts: create_mint::Accounts<Pubkey>,

@@ -3,7 +3,7 @@ use {
     mpl_token_metadata::pda::find_metadata_account,
     name_tokenizer::{
         entrypoint::process_instruction,
-        instruction::{create_central_state, create_mint, create_nft, redeem_nft, withdraw_tokens},
+        instruction::{create_mint, create_nft, redeem_nft, withdraw_tokens},
         state::{CentralState, NftRecord, MINT_PREFIX, ROOT_DOMAIN_ACCOUNT},
     },
     solana_program::{hash::hashv, pubkey::Pubkey, system_program, sysvar},
@@ -87,17 +87,6 @@ async fn test_offer() {
     // Create central state
     ////
     let (central_key, _) = CentralState::find_key(&name_tokenizer::ID);
-    let ix = create_central_state(
-        create_central_state::Accounts {
-            central_state: &central_key,
-            fee_payer: &prg_test_ctx.payer.pubkey(),
-            system_program: &system_program::ID,
-        },
-        create_central_state::Params {},
-    );
-    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
-        .await
-        .unwrap();
 
     ////
     // Create mint

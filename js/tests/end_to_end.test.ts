@@ -19,14 +19,13 @@ import {
 } from "@bonfida/spl-name-service";
 import crypto from "crypto";
 import {
-  createCentralState,
   createMint,
   createNft,
   redeemNft,
   withdrawTokens,
   NAME_TOKENIZER_ID_DEVNET,
 } from "../src/bindings";
-import { CentralState, Tag, MINT_PREFIX, NftRecord } from "../src/state";
+import { Tag, MINT_PREFIX, NftRecord } from "../src/state";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 
 // Global state initialized once in test startup and cleaned up at test
@@ -55,19 +54,18 @@ jest.setTimeout(1_500_000);
 /**
  * Test scenario
  *
- * (1) Create central state
- * (2) Create mint
- * (3) Create NFT
- * (4) Send funds to the tokenized domain (tokens + SOL)
- * (5) Withdraw funds
- * (6) Transfer NFT to new wallet
- * (7) Sends funds to the tokenized domain (tokens + SOL)
- * (8) Withdraw funds
- * (9) Sends funds to the tokenized domain (tokens + SOL)
- * (10) Redeem NFT
- * (11) Withdraw funds
- * (12) Create NFT again
- * (13) Verify metadata
+ * (1) Create mint
+ * (2) Create NFT
+ * (3) Send funds to the tokenized domain (tokens + SOL)
+ * (4) Withdraw funds
+ * (5) Transfer NFT to new wallet
+ * (6) Sends funds to the tokenized domain (tokens + SOL)
+ * (7) Withdraw funds
+ * (8) Sends funds to the tokenized domain (tokens + SOL)
+ * (9) Redeem NFT
+ * (10) Withdraw funds
+ * (11) Create NFT again
+ * (12) Verify metadata
  */
 
 test("End to end test", async () => {
@@ -80,6 +78,10 @@ test("End to end test", async () => {
   const bob = Keypair.generate();
   const uri = crypto.randomBytes(10).toString();
   const mintAmount = 20 * decimals;
+  const [centralKey] = await PublicKey.findProgramAddress(
+    [NAME_TOKENIZER_ID_DEVNET.toBuffer()],
+    NAME_TOKENIZER_ID_DEVNET
+  );
 
   // Expected balances
   const bobExpectedBalance = { sol: 0, token: 0 };
@@ -155,25 +157,7 @@ test("End to end test", async () => {
   console.log(`Create domain tx ${tx}`);
 
   /**
-   * (1) Create central state
-   */
-  // ix = await createCentralState(feePayer.publicKey, programId);
-  // tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
-
-  // console.log(`Create centrale state tx ${tx}`);
-
-  /**
-   * Verify state
-   */
-  const [centralKey] = await PublicKey.findProgramAddress(
-    [programId.toBuffer()],
-    programId
-  );
-  let centralState = await CentralState.retrieve(connection, centralKey);
-  expect(centralState.tag).toBe(Tag.CentralState);
-
-  /**
-   * (2) Create mint
+   * (1) Create mint
    */
   const [mintKey] = await PublicKey.findProgramAddress(
     [MINT_PREFIX, nameKey.toBuffer()],
@@ -234,7 +218,7 @@ test("End to end test", async () => {
   expect(mintInfo.supply.toNumber()).toBe(0);
 
   /**
-   * (3) Create NFT
+   * (2) Create NFT
    */
   ix = await createNft(
     name,
@@ -274,7 +258,7 @@ test("End to end test", async () => {
   expect(aliceNftAta.value.uiAmount).toBe(1);
 
   /**
-   * (4) Send funds to the tokenized domain (tokens + SOL)
+   * (3) Send funds to the tokenized domain (tokens + SOL)
    */
   const nftRecordTokenAtaKey = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -301,7 +285,7 @@ test("End to end test", async () => {
   aliceExpectedBalance.token += mintAmount;
 
   /**
-   * (5) Withdraw funds
+   * (4) Withdraw funds
    */
   ix = await withdrawTokens(
     mintKey,
@@ -332,7 +316,7 @@ test("End to end test", async () => {
   );
 
   /**
-   * (6) Transfer NFT to new wallet
+   * (5) Transfer NFT to new wallet
    */
   ix = [
     Token.createTransferInstruction(
@@ -353,7 +337,7 @@ test("End to end test", async () => {
   console.log(`Transfer NFT from Alice to Bob`);
 
   /**
-   * (7) Send funds to the tokenized domain (tokens + SOL)
+   * (6) Send funds to the tokenized domain (tokens + SOL)
    */
   await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
@@ -362,7 +346,7 @@ test("End to end test", async () => {
   bobExpectedBalance.token += mintAmount;
 
   /**
-   * (8) Withdraw funds
+   * (7) Withdraw funds
    */
   ix = await withdrawTokens(
     mintKey,
@@ -391,7 +375,7 @@ test("End to end test", async () => {
   );
 
   /**
-   * (9) Sends funds to the tokenized domain (tokens + SOL)
+   * (8) Sends funds to the tokenized domain (tokens + SOL)
    */
   await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
@@ -400,7 +384,7 @@ test("End to end test", async () => {
   bobExpectedBalance.token += mintAmount;
 
   /**
-   * (10) Redeem NFT
+   * (9) Redeem NFT
    */
   ix = await redeemNft(nameKey, bob.publicKey, programId);
   tx = await signAndSendTransactionInstructions(
@@ -425,7 +409,7 @@ test("End to end test", async () => {
   expect(nftRecord.tag).toBe(Tag.InactiveRecord);
 
   /**
-   * (11) Withdraw funds
+   * (10) Withdraw funds
    */
   ix = await withdrawTokens(
     mintKey,
@@ -454,7 +438,7 @@ test("End to end test", async () => {
   );
 
   /**
-   * (12) Create NFT again
+   * (11) Create NFT again
    */
   ix = await createNft(
     name,
@@ -489,7 +473,7 @@ test("End to end test", async () => {
   expect(nftRecord.tag).toBe(Tag.ActiveRecord);
 
   /**
-   * (13) Verify metadata
+   * (12) Verify metadata
    */
   const metadata = await Metadata.findByMint(connection, mintKey);
 

@@ -10,36 +10,6 @@ export enum Tag {
   InactiveRecord = 3,
 }
 
-export class CentralState {
-  tag: Tag;
-
-  static schema: Schema = new Map([
-    [
-      CentralState,
-      {
-        kind: "struct",
-        fields: [["tag", "u8"]],
-      },
-    ],
-  ]);
-
-  constructor(obj: { tag: number }) {
-    this.tag = obj.tag as Tag;
-  }
-
-  static deserialize(data: Buffer): CentralState {
-    return deserialize(this.schema, CentralState, data);
-  }
-
-  static async retrieve(connection: Connection, key: PublicKey) {
-    const accountInfo = await connection.getAccountInfo(key);
-    if (!accountInfo || !accountInfo.data) {
-      throw new Error("Central state not found");
-    }
-    return this.deserialize(accountInfo.data);
-  }
-}
-
 export class NftRecord {
   tag: Tag;
   nonce: number;

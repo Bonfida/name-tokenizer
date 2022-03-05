@@ -1,11 +1,5 @@
+import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import {
-  Connection,
-  PublicKey,
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
-} from "@solana/web3.js";
-import {
-  createCentralStateInstruction,
   withdrawTokensInstruction,
   createNftInstruction,
   createMintInstruction,
@@ -26,27 +20,8 @@ import { NAME_PROGRAM_ID } from "@bonfida/spl-name-service";
 export const NAME_TOKENIZER_ID = PublicKey.default;
 
 export const NAME_TOKENIZER_ID_DEVNET = new PublicKey(
-  "9cfHjaopLVMFEyAn3pnKAN1eXR6KsS84zSTfCDYdfJ2a"
+  "B7nUxWuwxE73G2J8LbrDxeSDg2zGTpz5daeaZoMvbzS7"
 );
-
-export const createCentralState = async (
-  feePayer: PublicKey,
-  programId: PublicKey
-) => {
-  const [centralKey] = await PublicKey.findProgramAddress(
-    [programId.toBuffer()],
-    programId
-  );
-
-  const ix = new createCentralStateInstruction().getInstruction(
-    programId,
-    centralKey,
-    feePayer,
-    SystemProgram.programId
-  );
-
-  return [ix];
-};
 
 export const createMint = async (
   nameAccount: PublicKey,

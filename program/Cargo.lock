@@ -196,9 +196,9 @@ checksum = "8d696c370c750c948ada61c69a0ee2cbbb9c50b1019ddb86d9317157a99c2cae"
 
 [[package]]
 name = "bonfida-macros"
-version = "0.2.0"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c1fb7b10374bf085c6d342363eec310e35642acb39d2d90be4df72160e708c2"
+checksum = "5560c4eb64bcc9c0eb4ad3975155c30cb353a898299dcc47c5400bf7e21c60ff"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -208,9 +208,9 @@ dependencies = [
 
 [[package]]
 name = "bonfida-utils"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4984a3d4ffad576e70af8faedbec1fa0830428a118490807e91c1a0a7dfdc4f7"
+checksum = "091c2a9e379de8a1e6d6fe5136fa35a35eedc3fabdbfb000976b802b73eb551e"
 dependencies = [
  "bonfida-macros",
  "borsh",
@@ -1374,7 +1374,7 @@ dependencies = [
 [[package]]
 name = "mpl-token-metadata"
 version = "1.2.5"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library#56d989e82232849facf3e06a356d734c8c97d01e"
+source = "git+https://github.com/metaplex-foundation/metaplex-program-library#7dc157bd226080594bfbcd28e8baa1efb5d49cc0"
 dependencies = [
  "arrayref",
  "borsh",

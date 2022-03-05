@@ -2,7 +2,7 @@
 
 use crate::{
     cpi::Cpi,
-    state::{CentralState, NftRecord, Tag, CREATOR_FEE, META_SYMBOL, MINT_PREFIX, SELLER_BASIS},
+    state::{NftRecord, Tag, CREATOR_FEE, META_SYMBOL, MINT_PREFIX, SELLER_BASIS},
     utils::check_name,
 };
 
@@ -110,6 +110,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         };
 
         // Check keys
+        check_account_key(accounts.central_state, &crate::central_state::KEY)?;
         check_account_key(accounts.spl_token_program, &spl_token::ID)?;
         check_account_key(accounts.metadata_program, &mpl_token_metadata::ID)?;
         check_account_key(accounts.system_program, &system_program::ID)?;
@@ -121,12 +122,9 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_owner(accounts.nft_destination, &spl_token::ID)?;
         check_account_owner(accounts.name_account, &spl_name_service::ID)?;
         check_account_owner(accounts.nft_record, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.nft_record, program_id))
-            ?;
+            .or_else(|_| check_account_owner(accounts.nft_record, program_id))?;
         check_account_owner(accounts.metadata_account, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID))
-            ?;
-        check_account_owner(accounts.central_state, program_id)?;
+            .or_else(|_| check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID))?;
 
         // Check signer
         check_signer(accounts.name_owner)?;
@@ -138,9 +136,6 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) -> ProgramResult {
     let accounts = Accounts::parse(accounts, program_id)?;
     let Params { name, uri } = params;
-
-    let (central_key, central_nonce) = CentralState::find_key(program_id);
-    check_account_key(accounts.central_state, &central_key)?;
 
     let (mint, _) = Pubkey::find_program_address(
         &[MINT_PREFIX, &accounts.name_account.key.to_bytes()],
@@ -208,11 +203,11 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
         &spl_token::ID,
         &mint,
         accounts.nft_destination.key,
-        &central_key,
+        &crate::central_state::KEY,
         &[],
         1,
     )?;
-    let seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_nonce]];
+    let seeds: &[&[u8]] = &[&program_id.to_bytes(), &[crate::central_state::NONCE]];
 
     invoke_signed(
         &ix,
@@ -229,7 +224,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     if accounts.metadata_account.data_is_empty() {
         msg!("+ Creating metadata");
         let central_creator = Creator {
-            address: central_key,
+            address: crate::central_state::KEY,
             verified: true,
             share: 0,
         };
@@ -237,9 +232,9 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             mpl_token_metadata::ID,
             *accounts.metadata_account.key,
             mint,
-            central_key,
+            crate::central_state::KEY,
             *accounts.fee_payer.key,
-            central_key,
+            crate::central_state::KEY,
             name,
             META_SYMBOL.to_string(),
             uri,

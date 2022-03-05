@@ -9,7 +9,6 @@ use {
 
 use crate::instruction::ProgramInstruction;
 
-pub mod create_central_state;
 pub mod create_mint;
 pub mod create_nft;
 pub mod redeem_nft;
@@ -30,10 +29,6 @@ impl Processor {
         msg!("Instruction unpacked");
 
         match instruction {
-            ProgramInstruction::CreateCentralState => {
-                msg!("Instruction: Create central state");
-                create_central_state::process(program_id, accounts)?;
-            }
             ProgramInstruction::CreateMint => {
                 msg!("Instruction: Create mint");
                 create_mint::process(program_id, accounts)?;

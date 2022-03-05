@@ -8,53 +8,6 @@ export interface AccountKey {
   isSigner: boolean;
   isWritable: boolean;
 }
-export class createCentralStateInstruction {
-  tag: number;
-  static schema: Schema = new Map([
-    [
-      createCentralStateInstruction,
-      {
-        kind: "struct",
-        fields: [["tag", "u8"]],
-      },
-    ],
-  ]);
-  constructor() {
-    this.tag = 0;
-  }
-  serialize(): Uint8Array {
-    return serialize(createCentralStateInstruction.schema, this);
-  }
-  getInstruction(
-    programId: PublicKey,
-    centralState: PublicKey,
-    feePayer: PublicKey,
-    systemProgram: PublicKey
-  ): TransactionInstruction {
-    const data = Buffer.from(this.serialize());
-    let keys: AccountKey[] = [];
-    keys.push({
-      pubkey: centralState,
-      isSigner: false,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: feePayer,
-      isSigner: true,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: systemProgram,
-      isSigner: false,
-      isWritable: false,
-    });
-    return new TransactionInstruction({
-      keys,
-      programId,
-      data,
-    });
-  }
-}
 export class withdrawTokensInstruction {
   tag: number;
   static schema: Schema = new Map([
@@ -67,7 +20,7 @@ export class withdrawTokensInstruction {
     ],
   ]);
   constructor() {
-    this.tag = 4;
+    this.tag = 3;
   }
   serialize(): Uint8Array {
     return serialize(withdrawTokensInstruction.schema, this);
@@ -144,7 +97,7 @@ export class createNftInstruction {
     ],
   ]);
   constructor(obj: { name: string; uri: string }) {
-    this.tag = 2;
+    this.tag = 1;
     this.name = obj.name;
     this.uri = obj.uri;
   }
@@ -253,7 +206,7 @@ export class createMintInstruction {
     ],
   ]);
   constructor() {
-    this.tag = 1;
+    this.tag = 0;
   }
   serialize(): Uint8Array {
     return serialize(createMintInstruction.schema, this);
@@ -324,7 +277,7 @@ export class redeemNftInstruction {
     ],
   ]);
   constructor() {
-    this.tag = 3;
+    this.tag = 2;
   }
   serialize(): Uint8Array {
     return serialize(redeemNftInstruction.schema, this);
