@@ -100,12 +100,10 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
 
     let nft = Account::unpack(&accounts.nft.data.borrow())?;
 
-    if (nft_record.is_active() && nft.amount != 1) || nft.mint != nft_record.nft_mint {
-        msg!("Invalid NFT account");
-        return Err(ProgramError::InvalidAccountData);
-    }
+    assert_eq!(nft.mint, nft_record.nft_mint);
 
     if nft_record.is_active() {
+        assert_eq!(nft.amount, 1);
         check_account_key(accounts.nft_owner, &nft.owner)?;
     } else {
         check_account_key(accounts.nft_owner, &nft_record.owner)?
