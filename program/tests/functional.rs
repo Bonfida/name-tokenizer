@@ -304,4 +304,19 @@ async fn test_offer() {
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
         .await
         .unwrap();
+    let ix = withdraw_tokens(
+        withdraw_tokens::Accounts {
+            nft: &bob_nft_ata,
+            nft_owner: &bob.pubkey(),
+            nft_record: &nft_record,
+            token_source: &usdc_ata_program,
+            token_destination: &usdc_ata_bob,
+            spl_token_program: &spl_token::ID,
+            system_program: &system_program::ID,
+        },
+        withdraw_tokens::Params {},
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
+        .await
+        .unwrap();
 }
