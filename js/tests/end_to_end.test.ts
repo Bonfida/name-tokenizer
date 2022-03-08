@@ -22,6 +22,7 @@ import {
   createMint,
   createNft,
   redeemNft,
+  createCollection,
   withdrawTokens,
   NAME_TOKENIZER_ID_DEVNET,
 } from "../src/bindings";
@@ -36,7 +37,7 @@ let programId: PublicKey;
 
 beforeAll(async () => {
   connection = new Connection(
-    "https://explorer-api.testnet.solana.com/ ",
+    "https://explorer-api.devnet.solana.com/ ",
     "confirmed"
   );
   feePayer = Keypair.generate();
@@ -55,6 +56,7 @@ jest.setTimeout(1_500_000);
  * Test scenario
  *
  * (1) Create mint
+ * () Create collection
  * (2) Create NFT
  * (3) Send funds to the tokenized domain (tokens + SOL)
  * (4) Withdraw funds
@@ -167,6 +169,15 @@ test("End to end test", async () => {
   tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
 
   console.log(`Create mint ${tx}`);
+
+  /**
+   * (2) Create Collection
+   */
+
+  ix = await createCollection(feePayer.publicKey, programId);
+  tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+
+  console.log(`Create collection ${tx}`);
 
   /**
    * Create ATAs for Alice and Bob

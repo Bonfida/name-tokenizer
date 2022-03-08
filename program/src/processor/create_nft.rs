@@ -2,7 +2,9 @@
 
 use crate::{
     cpi::Cpi,
-    state::{NftRecord, Tag, CREATOR_FEE, META_SYMBOL, MINT_PREFIX, SELLER_BASIS},
+    state::{
+        NftRecord, Tag, COLLECTION_PREFIX, CREATOR_FEE, META_SYMBOL, MINT_PREFIX, SELLER_BASIS,
+    },
     utils::check_name,
 };
 
@@ -13,7 +15,9 @@ use {
     },
     borsh::{BorshDeserialize, BorshSerialize},
     mpl_token_metadata::{
-        instruction::create_metadata_accounts_v2, pda::find_metadata_account, state::Creator,
+        instruction::{create_metadata_accounts_v2, set_and_verify_collection},
+        pda::{find_master_edition_account, find_metadata_account},
+        state::Creator,
     },
     solana_program::{
         account_info::{next_account_info, AccountInfo},
@@ -64,7 +68,17 @@ pub struct Accounts<'a, T> {
     #[cons(writable)]
     pub metadata_account: &'a T,
 
+    /// Master edition account
+    pub edition_account: &'a T,
+
+    /// Collection
+    pub collection_metadata: &'a T,
+
+    /// Mint of the collection
+    pub collection_mint: &'a T,
+
     /// The central state account
+    #[cons(writable)]
     pub central_state: &'a T,
 
     /// The fee payer account
@@ -100,6 +114,9 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             nft_record: next_account_info(accounts_iter)?,
             name_owner: next_account_info(accounts_iter)?,
             metadata_account: next_account_info(accounts_iter)?,
+            edition_account: next_account_info(accounts_iter)?,
+            collection_metadata: next_account_info(accounts_iter)?,
+            collection_mint: next_account_info(accounts_iter)?,
             central_state: next_account_info(accounts_iter)?,
             fee_payer: next_account_info(accounts_iter)?,
             spl_token_program: next_account_info(accounts_iter)?,
@@ -125,6 +142,9 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             .or_else(|_| check_account_owner(accounts.nft_record, program_id))?;
         check_account_owner(accounts.metadata_account, &system_program::ID)
             .or_else(|_| check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID))?;
+        check_account_owner(accounts.edition_account, &mpl_token_metadata::ID)?;
+        check_account_owner(accounts.collection_metadata, &mpl_token_metadata::ID)?;
+        check_account_owner(accounts.collection_mint, &spl_token::ID)?;
 
         // Check signer
         check_signer(accounts.name_owner)?;
@@ -154,6 +174,18 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     // Verify metadata PDA
     let (metadata_key, _) = find_metadata_account(&mint);
     check_account_key(accounts.metadata_account, &metadata_key)?;
+
+    // Verifiy edition PDA
+    let (collection_mint, _) =
+        Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
+    check_account_key(accounts.collection_mint, &collection_mint)?;
+
+    let (edition_key, _) = find_master_edition_account(&collection_mint);
+    check_account_key(accounts.edition_account, &edition_key)?;
+
+    // Verify collection metadata PDA
+    let (collection_metadata, _) = find_metadata_account(&collection_mint);
+    check_account_key(accounts.collection_metadata, &collection_metadata)?;
 
     // Verify mint
     let mint_info = Mint::unpack(&accounts.mint.data.borrow())?;
@@ -228,6 +260,10 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             verified: true,
             share: 0,
         };
+        let (collection_mint, _) =
+            Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
+        let (collection, _) = find_metadata_account(&collection_mint);
+
         let ix = create_metadata_accounts_v2(
             mpl_token_metadata::ID,
             *accounts.metadata_account.key,
@@ -254,6 +290,33 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
                 accounts.mint.clone(),
                 accounts.central_state.clone(),
                 accounts.fee_payer.clone(),
+            ],
+            &[seeds],
+        )?;
+
+        msg!("+ Verifying collection");
+        let ix = set_and_verify_collection(
+            mpl_token_metadata::ID,
+            metadata_key,
+            crate::central_state::KEY,
+            *accounts.fee_payer.key,
+            crate::central_state::KEY,
+            collection_mint,
+            collection,
+            edition_key,
+            None,
+        );
+        invoke_signed(
+            &ix,
+            &[
+                accounts.metadata_program.clone(),
+                accounts.metadata_account.clone(),
+                accounts.central_state.clone(),
+                accounts.fee_payer.clone(),
+                accounts.central_state.clone(),
+                accounts.collection_mint.clone(),
+                accounts.collection_metadata.clone(),
+                accounts.edition_account.clone(),
             ],
             &[seeds],
         )?;

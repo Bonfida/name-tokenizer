@@ -9,6 +9,7 @@ use {
 
 use crate::instruction::ProgramInstruction;
 
+pub mod create_collection;
 pub mod create_mint;
 pub mod create_nft;
 pub mod redeem_nft;
@@ -32,6 +33,10 @@ impl Processor {
             ProgramInstruction::CreateMint => {
                 msg!("Instruction: Create mint");
                 create_mint::process(program_id, accounts)?;
+            }
+            ProgramInstruction::CreateCollection => {
+                msg!("Instruction: Create collection");
+                create_collection::process(program_id, accounts)?;
             }
             ProgramInstruction::CreateNft => {
                 msg!("Instruction: Create NFT");

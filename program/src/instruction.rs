@@ -1,4 +1,6 @@
-pub use crate::processor::{create_mint, create_nft, redeem_nft, withdraw_tokens};
+pub use crate::processor::{
+    create_collection, create_mint, create_nft, redeem_nft, withdraw_tokens,
+};
 use {
     bonfida_utils::InstructionsAccount,
     borsh::{BorshDeserialize, BorshSerialize},
@@ -9,7 +11,7 @@ use {
 #[derive(BorshDeserialize, BorshSerialize, FromPrimitive)]
 pub enum ProgramInstruction {
     /// Create the NFT mint
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                   |
     /// | --------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT           |
@@ -20,8 +22,25 @@ pub enum ProgramInstruction {
     /// | 5     | ❌        | ❌      | Rent sysvar account           |
     /// | 6     | ❌        | ❌      | Fee payer account             |
     CreateMint,
+    /// Create a verified collection
+    /// 
+    /// | Index | Writable | Signer | Description                                                   |
+    /// | ----------------------------------------------------------------------------------------- |
+    /// | 0     | ✅        | ❌      | The mint of the collection                                    |
+    /// | 1     | ✅        | ❌      |                                                               |
+    /// | 2     | ✅        | ❌      | The metadata account                                          |
+    /// | 3     | ❌        | ❌      | The central state account                                     |
+    /// | 4     | ✅        | ❌      | Token account of the central state to hold the master edition |
+    /// | 5     | ❌        | ❌      | The fee payer account                                         |
+    /// | 6     | ❌        | ❌      | The SPL token program account                                 |
+    /// | 7     | ❌        | ❌      | The metadata program account                                  |
+    /// | 8     | ❌        | ❌      | The system program account                                    |
+    /// | 9     | ❌        | ❌      | The SPL name service program account                          |
+    /// | 10    | ❌        | ❌      |                                                               |
+    /// | 11    | ❌        | ❌      | Rent sysvar account                                           |
+    CreateCollection,
     /// Tokenize a domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                          |
     /// | ---------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                  |
@@ -30,16 +49,19 @@ pub enum ProgramInstruction {
     /// | 3     | ✅        | ❌      | The NFT record account               |
     /// | 4     | ✅        | ✅      | The domain name owner                |
     /// | 5     | ✅        | ❌      | The metadata account                 |
-    /// | 6     | ❌        | ❌      | The central state account            |
-    /// | 7     | ✅        | ❌      | The fee payer account                |
-    /// | 8     | ❌        | ❌      | The SPL token program account        |
-    /// | 9     | ❌        | ❌      | The metadata program account         |
-    /// | 10    | ❌        | ❌      | The system program account           |
-    /// | 11    | ❌        | ❌      | The SPL name service program account |
-    /// | 12    | ❌        | ❌      | Rent sysvar account                  |
+    /// | 6     | ❌        | ❌      | Master edition account               |
+    /// | 7     | ❌        | ❌      | Collection                           |
+    /// | 8     | ❌        | ❌      | Mint of the collection               |
+    /// | 9     | ✅        | ❌      | The central state account            |
+    /// | 10    | ✅        | ❌      | The fee payer account                |
+    /// | 11    | ❌        | ❌      | The SPL token program account        |
+    /// | 12    | ❌        | ❌      | The metadata program account         |
+    /// | 13    | ❌        | ❌      | The system program account           |
+    /// | 14    | ❌        | ❌      | The SPL name service program account |
+    /// | 15    | ❌        | ❌      | Rent sysvar account                  |
     CreateNft,
     /// Redeem a tokenized domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                               |
     /// | --------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                       |
@@ -52,7 +74,7 @@ pub enum ProgramInstruction {
     RedeemNft,
     /// Withdraw funds that have been sent to the escrow
     /// while the domain was tokenized
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                                |
     /// | ---------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The token account holding the NFT          |
@@ -64,7 +86,6 @@ pub enum ProgramInstruction {
     /// | 6     | ❌        | ❌      | The system program account                 |
     WithdrawTokens,
 }
-
 #[allow(missing_docs)]
 pub fn create_mint(
     accounts: create_mint::Accounts<Pubkey>,
@@ -92,4 +113,15 @@ pub fn withdraw_tokens(
     params: withdraw_tokens::Params,
 ) -> Instruction {
     accounts.get_instruction(crate::ID, ProgramInstruction::WithdrawTokens as u8, params)
+}
+#[allow(missing_docs)]
+pub fn create_collection(
+    accounts: create_collection::Accounts<Pubkey>,
+    params: create_collection::Params,
+) -> Instruction {
+    accounts.get_instruction(
+        crate::ID,
+        ProgramInstruction::CreateCollection as u8,
+        params,
+    )
 }

@@ -24,6 +24,12 @@ pub const CREATOR_FEE: Creator = Creator {
     share: 100,
 };
 
+pub const COLLECTION_PREFIX: &[u8; 10] = b"collection";
+
+pub const COLLECTION_NAME: &str = "Solana name service collection";
+
+pub const COLLECTION_URI: &str = "";
+
 #[derive(BorshSerialize, BorshDeserialize, BorshSize, PartialEq)]
 #[allow(missing_docs)]
 pub enum Tag {

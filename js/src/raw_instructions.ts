@@ -20,7 +20,7 @@ export class withdrawTokensInstruction {
     ],
   ]);
   constructor() {
-    this.tag = 3;
+    this.tag = 4;
   }
   serialize(): Uint8Array {
     return serialize(withdrawTokensInstruction.schema, this);
@@ -79,6 +79,107 @@ export class withdrawTokensInstruction {
     });
   }
 }
+export class createCollectionInstruction {
+  tag: number;
+  static schema: Schema = new Map([
+    [
+      createCollectionInstruction,
+      {
+        kind: "struct",
+        fields: [["tag", "u8"]],
+      },
+    ],
+  ]);
+  constructor() {
+    this.tag = 1;
+  }
+  serialize(): Uint8Array {
+    return serialize(createCollectionInstruction.schema, this);
+  }
+  getInstruction(
+    programId: PublicKey,
+    collectionMint: PublicKey,
+    edition: PublicKey,
+    metadataAccount: PublicKey,
+    centralState: PublicKey,
+    centralStateNftAta: PublicKey,
+    feePayer: PublicKey,
+    splTokenProgram: PublicKey,
+    metadataProgram: PublicKey,
+    systemProgram: PublicKey,
+    splNameServiceProgram: PublicKey,
+    ataProgram: PublicKey,
+    rentAccount: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys: AccountKey[] = [];
+    keys.push({
+      pubkey: collectionMint,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: edition,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: metadataAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: centralState,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: centralStateNftAta,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: feePayer,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: splTokenProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: metadataProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: systemProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: splNameServiceProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: ataProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: rentAccount,
+      isSigner: false,
+      isWritable: false,
+    });
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
 export class createNftInstruction {
   tag: number;
   name: string;
@@ -97,7 +198,7 @@ export class createNftInstruction {
     ],
   ]);
   constructor(obj: { name: string; uri: string }) {
-    this.tag = 1;
+    this.tag = 2;
     this.name = obj.name;
     this.uri = obj.uri;
   }
@@ -112,6 +213,9 @@ export class createNftInstruction {
     nftRecord: PublicKey,
     nameOwner: PublicKey,
     metadataAccount: PublicKey,
+    editionAccount: PublicKey,
+    collectionMetadata: PublicKey,
+    collectionMint: PublicKey,
     centralState: PublicKey,
     feePayer: PublicKey,
     splTokenProgram: PublicKey,
@@ -153,9 +257,24 @@ export class createNftInstruction {
       isWritable: true,
     });
     keys.push({
-      pubkey: centralState,
+      pubkey: editionAccount,
       isSigner: false,
       isWritable: false,
+    });
+    keys.push({
+      pubkey: collectionMetadata,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: collectionMint,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: centralState,
+      isSigner: false,
+      isWritable: true,
     });
     keys.push({
       pubkey: feePayer,
@@ -277,7 +396,7 @@ export class redeemNftInstruction {
     ],
   ]);
   constructor() {
-    this.tag = 2;
+    this.tag = 3;
   }
   serialize(): Uint8Array {
     return serialize(redeemNftInstruction.schema, this);

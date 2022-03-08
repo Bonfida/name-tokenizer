@@ -2,6 +2,7 @@ import { deserialize, Schema } from "borsh";
 import { Connection, PublicKey } from "@solana/web3.js";
 
 export const MINT_PREFIX = Buffer.from("tokenized_name");
+export const COLLECTION_PREFIX = Buffer.from("collection");
 
 export enum Tag {
   Uninitialized = 0,

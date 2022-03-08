@@ -1,10 +1,10 @@
 use {
     borsh::BorshSerialize,
-    mpl_token_metadata::pda::find_metadata_account,
+    mpl_token_metadata::pda::{find_master_edition_account, find_metadata_account},
     name_tokenizer::{
         entrypoint::process_instruction,
-        instruction::{create_mint, create_nft, redeem_nft, withdraw_tokens},
-        state::{CentralState, NftRecord, MINT_PREFIX, ROOT_DOMAIN_ACCOUNT},
+        instruction::{create_collection, create_mint, create_nft, redeem_nft, withdraw_tokens},
+        state::{CentralState, NftRecord, COLLECTION_PREFIX, MINT_PREFIX, ROOT_DOMAIN_ACCOUNT},
     },
     solana_program::{hash::hashv, pubkey::Pubkey, system_program, sysvar},
     solana_program_test::{processor, ProgramTest},
@@ -119,6 +119,44 @@ async fn test_offer() {
         .unwrap();
 
     ////
+    // Create central state ATA for collection mint
+    ////
+
+    let (collection_mint, _) = Pubkey::find_program_address(
+        &[COLLECTION_PREFIX, &name_tokenizer::ID.to_bytes()],
+        &name_tokenizer::ID,
+    );
+    let central_state_collection_ata =
+        get_associated_token_address(&name_tokenizer::central_state::KEY, &collection_mint);
+
+    ////
+    // Create collection
+    ////
+    let (edition_key, _) = find_master_edition_account(&collection_mint);
+    let (collection_metadata_key, _) = find_metadata_account(&collection_mint);
+    let ix = create_collection(
+        create_collection::Accounts {
+            collection_mint: &collection_mint,
+            edition: &edition_key,
+            metadata_account: &collection_metadata_key,
+            central_state: &central_key,
+            central_state_nft_ata: &central_state_collection_ata,
+            fee_payer: &prg_test_ctx.payer.pubkey(),
+            spl_token_program: &spl_token::ID,
+            metadata_program: &mpl_token_metadata::ID,
+            system_program: &system_program::ID,
+            spl_name_service_program: &spl_name_service::ID,
+            rent_account: &sysvar::rent::ID,
+            ata_program: &spl_associated_token_account::ID,
+        },
+        create_collection::Params {},
+    );
+
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap();
+
+    ////
     // Create Alice and Bob ATAs
     ////
 
@@ -155,6 +193,9 @@ async fn test_offer() {
             spl_name_service_program: &spl_name_service::ID,
             rent_account: &sysvar::rent::ID,
             fee_payer: &prg_test_ctx.payer.pubkey(),
+            edition_account: &edition_key,
+            collection_metadata: &collection_metadata_key,
+            collection_mint: &collection_mint,
         },
         create_nft::Params {
             name: name.to_string(),
@@ -295,6 +336,9 @@ async fn test_offer() {
             spl_name_service_program: &spl_name_service::ID,
             rent_account: &sysvar::rent::ID,
             fee_payer: &prg_test_ctx.payer.pubkey(),
+            edition_account: &edition_key,
+            collection_metadata: &collection_metadata_key,
+            collection_mint: &collection_mint,
         },
         create_nft::Params {
             name: name.to_string(),

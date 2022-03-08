@@ -16,4 +16,4 @@ pub(crate) mod utils;
 #[allow(missing_docs)]
 pub mod cpi;
 
-declare_id_with_central_state!("B7nUxWuwxE73G2J8LbrDxeSDg2zGTpz5daeaZoMvbzS7");
+declare_id_with_central_state!("45gRSRZmK6NDEJrCZ72MMddjA1ozufq9YQpm41poPXCE");
