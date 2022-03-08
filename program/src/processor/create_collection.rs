@@ -125,6 +125,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
 
     let (collection_mint, collection_mint_nonce) =
         Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
+    check_account_key(accounts.collection_mint, &collection_mint)?;
 
     let (metadata_key, _) = find_metadata_account(&collection_mint);
     check_account_key(accounts.metadata_account, &metadata_key)?;
