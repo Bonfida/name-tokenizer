@@ -6,7 +6,12 @@ import {
   redeemNftInstruction,
   createCollectionInstruction,
 } from "./raw_instructions";
-import { COLLECTION_PREFIX, MINT_PREFIX, NftRecord } from "./state";
+import {
+  COLLECTION_PREFIX,
+  MINT_PREFIX,
+  NftRecord,
+  METADA_SIGNER,
+} from "./state";
 import {
   TOKEN_PROGRAM_ID,
   Token,
@@ -149,7 +154,8 @@ export const createNft = async (
     MetadataProgram.PUBKEY,
     SystemProgram.programId,
     NAME_PROGRAM_ID,
-    SYSVAR_RENT_PUBKEY
+    SYSVAR_RENT_PUBKEY,
+    METADA_SIGNER
   );
 
   return [ix];

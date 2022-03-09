@@ -4,7 +4,10 @@ use {
     name_tokenizer::{
         entrypoint::process_instruction,
         instruction::{create_collection, create_mint, create_nft, redeem_nft, withdraw_tokens},
-        state::{CentralState, NftRecord, COLLECTION_PREFIX, MINT_PREFIX, ROOT_DOMAIN_ACCOUNT},
+        state::{
+            CentralState, NftRecord, COLLECTION_PREFIX, METADA_SIGNER, MINT_PREFIX,
+            ROOT_DOMAIN_ACCOUNT,
+        },
     },
     solana_program::{hash::hashv, pubkey::Pubkey, system_program, sysvar},
     solana_program_test::{processor, ProgramTest},
@@ -196,6 +199,8 @@ async fn test_offer() {
             edition_account: &edition_key,
             collection_metadata: &collection_metadata_key,
             collection_mint: &collection_mint,
+            #[cfg(not(feature = "devnet"))]
+            metadata_signer: &METADA_SIGNER,
         },
         create_nft::Params {
             name: name.to_string(),
@@ -339,6 +344,8 @@ async fn test_offer() {
             edition_account: &edition_key,
             collection_metadata: &collection_metadata_key,
             collection_mint: &collection_mint,
+            #[cfg(not(feature = "devnet"))]
+            metadata_signer: &METADA_SIGNER,
         },
         create_nft::Params {
             name: name.to_string(),

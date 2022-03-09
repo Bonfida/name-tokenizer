@@ -3,7 +3,8 @@
 use crate::{
     cpi::Cpi,
     state::{
-        NftRecord, Tag, COLLECTION_PREFIX, CREATOR_FEE, META_SYMBOL, MINT_PREFIX, SELLER_BASIS,
+        NftRecord, Tag, COLLECTION_PREFIX, CREATOR_FEE, METADA_SIGNER, META_SYMBOL, MINT_PREFIX,
+        SELLER_BASIS,
     },
     utils::check_name,
 };
@@ -99,6 +100,11 @@ pub struct Accounts<'a, T> {
 
     /// Rent sysvar account
     pub rent_account: &'a T,
+
+    /// The metadata signer
+    #[cons(signer)]
+    #[cfg(not(feature = "devnet"))]
+    pub metadata_signer: &'a T,
 }
 
 impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
@@ -124,6 +130,8 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             system_program: next_account_info(accounts_iter)?,
             spl_name_service_program: next_account_info(accounts_iter)?,
             rent_account: next_account_info(accounts_iter)?,
+            #[cfg(not(feature = "devnet"))]
+            metadata_signer: next_account_info(accounts_iter)?,
         };
 
         // Check keys
@@ -133,6 +141,8 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(accounts.system_program, &system_program::ID)?;
         check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
         check_account_key(accounts.rent_account, &sysvar::rent::ID)?;
+        #[cfg(not(feature = "devnet"))]
+        check_account_key(accounts.metadata_signer, &METADA_SIGNER)?;
 
         // Check owners
         check_account_owner(accounts.mint, &spl_token::ID)?;
@@ -148,6 +158,8 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 
         // Check signer
         check_signer(accounts.name_owner)?;
+        #[cfg(not(feature = "devnet"))]
+        check_signer(accounts.metadata_signer)?;
 
         Ok(accounts)
     }

@@ -78,7 +78,8 @@ test("End to end test", async () => {
   const token = await TokenMint.init(connection, feePayer);
   const alice = Keypair.generate();
   const bob = Keypair.generate();
-  const uri = crypto.randomBytes(10).toString();
+  const uri =
+    "https://cloudflare-ipfs.com/ipfs/QmcvZWy8eanJvc96iraVdwNXNyT2bQ8ZQsZhETEcbrZJcJ";
   const mintAmount = 20 * decimals;
   const [centralKey] = await PublicKey.findProgramAddress(
     [NAME_TOKENIZER_ID_DEVNET.toBuffer()],
@@ -174,10 +175,10 @@ test("End to end test", async () => {
    * (2) Create Collection
    */
 
-  ix = await createCollection(feePayer.publicKey, programId);
-  tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  // ix = await createCollection(feePayer.publicKey, programId);
+  // tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
 
-  console.log(`Create collection ${tx}`);
+  // console.log(`Create collection ${tx}`);
 
   /**
    * Create ATAs for Alice and Bob

@@ -222,7 +222,8 @@ export class createNftInstruction {
     metadataProgram: PublicKey,
     systemProgram: PublicKey,
     splNameServiceProgram: PublicKey,
-    rentAccount: PublicKey
+    rentAccount: PublicKey,
+    metadataSigner: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys: AccountKey[] = [];
@@ -304,6 +305,11 @@ export class createNftInstruction {
     keys.push({
       pubkey: rentAccount,
       isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: metadataSigner,
+      isSigner: true,
       isWritable: false,
     });
     return new TransactionInstruction({
