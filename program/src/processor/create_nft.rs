@@ -272,9 +272,6 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             verified: true,
             share: 0,
         };
-        let (collection_mint, _) =
-            Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
-        let (collection, _) = find_metadata_account(&collection_mint);
 
         let ix = create_metadata_accounts_v2(
             mpl_token_metadata::ID,
@@ -314,7 +311,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             *accounts.fee_payer.key,
             crate::central_state::KEY,
             collection_mint,
-            collection,
+            collection_metadata,
             edition_key,
             None,
         );
