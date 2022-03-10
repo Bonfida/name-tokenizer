@@ -28,7 +28,8 @@ pub const COLLECTION_PREFIX: &[u8; 10] = b"collection";
 
 pub const COLLECTION_NAME: &str = "Solana name service collection";
 
-pub const COLLECTION_URI: &str = "";
+pub const COLLECTION_URI: &str =
+    "https://cloudflare-ipfs.com/ipfs/QmPeTioTicb19seM6itP8KD39syNZVJS2KHXNkxauSGXAJ";
 
 pub const METADA_SIGNER: Pubkey = pubkey!("ARy9ZzW9qFCb8c8Lxi4NCph1TRNabUaMH5tj4e5pqwHb");
 
