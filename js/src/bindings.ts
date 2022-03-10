@@ -24,7 +24,9 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import { NAME_PROGRAM_ID } from "@bonfida/spl-name-service";
 
-export const NAME_TOKENIZER_ID = PublicKey.default;
+export const NAME_TOKENIZER_ID = new PublicKey(
+  "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk"
+);
 
 export const NAME_TOKENIZER_ID_DEVNET = new PublicKey(
   "45gRSRZmK6NDEJrCZ72MMddjA1ozufq9YQpm41poPXCE"
