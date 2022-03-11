@@ -83,7 +83,7 @@ pub struct Accounts<'a, T> {
     pub central_state: &'a T,
 
     /// The fee payer account
-    #[cons(writable)]
+    #[cons(writable, signer)]
     pub fee_payer: &'a T,
 
     /// The SPL token program account

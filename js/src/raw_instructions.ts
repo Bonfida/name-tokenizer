@@ -279,7 +279,7 @@ export class createNftInstruction {
     });
     keys.push({
       pubkey: feePayer,
-      isSigner: false,
+      isSigner: true,
       isWritable: true,
     });
     keys.push({
