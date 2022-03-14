@@ -55,19 +55,19 @@ jest.setTimeout(1_500_000);
 /**
  * Test scenario
  *
- * (1) Create mint
- * () Create collection
- * (2) Create NFT
- * (3) Send funds to the tokenized domain (tokens + SOL)
- * (4) Withdraw funds
- * (5) Transfer NFT to new wallet
- * (6) Sends funds to the tokenized domain (tokens + SOL)
- * (7) Withdraw funds
- * (8) Sends funds to the tokenized domain (tokens + SOL)
- * (9) Redeem NFT
- * (10) Withdraw funds
- * (11) Create NFT again
- * (12) Verify metadata
+ * Create mint
+ * Create collection
+ * Create NFT
+ * Send funds to the tokenized domain (tokens + SOL)
+ * Withdraw funds
+ * Transfer NFT to new wallet
+ * Sends funds to the tokenized domain (tokens + SOL)
+ * Withdraw funds
+ * Sends funds to the tokenized domain (tokens + SOL)
+ * Redeem NFT
+ * Withdraw funds
+ * Create NFT again
+ * Verify metadata
  */
 
 test("End to end test", async () => {
@@ -160,7 +160,7 @@ test("End to end test", async () => {
   console.log(`Create domain tx ${tx}`);
 
   /**
-   * (1) Create mint
+   * Create mint
    */
   const [mintKey] = await PublicKey.findProgramAddress(
     [MINT_PREFIX, nameKey.toBuffer()],
@@ -172,7 +172,7 @@ test("End to end test", async () => {
   console.log(`Create mint ${tx}`);
 
   /**
-   * (2) Create Collection
+   * Create Collection
    */
 
   // ix = await createCollection(feePayer.publicKey, programId);
@@ -230,7 +230,7 @@ test("End to end test", async () => {
   expect(mintInfo.supply.toNumber()).toBe(0);
 
   /**
-   * (2) Create NFT
+   * Create NFT
    */
   ix = await createNft(
     name,
@@ -270,7 +270,7 @@ test("End to end test", async () => {
   expect(aliceNftAta.value.uiAmount).toBe(1);
 
   /**
-   * (3) Send funds to the tokenized domain (tokens + SOL)
+   * Send funds to the tokenized domain (tokens + SOL)
    */
   const nftRecordTokenAtaKey = await Token.getAssociatedTokenAddress(
     ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -297,7 +297,7 @@ test("End to end test", async () => {
   aliceExpectedBalance.token += mintAmount;
 
   /**
-   * (4) Withdraw funds
+   * Withdraw funds
    */
   ix = await withdrawTokens(
     mintKey,
@@ -328,7 +328,7 @@ test("End to end test", async () => {
   );
 
   /**
-   * (5) Transfer NFT to new wallet
+   * Transfer NFT to new wallet
    */
   ix = [
     Token.createTransferInstruction(
@@ -349,7 +349,7 @@ test("End to end test", async () => {
   console.log(`Transfer NFT from Alice to Bob`);
 
   /**
-   * (6) Send funds to the tokenized domain (tokens + SOL)
+   * Send funds to the tokenized domain (tokens + SOL)
    */
   await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
@@ -358,7 +358,7 @@ test("End to end test", async () => {
   bobExpectedBalance.token += mintAmount;
 
   /**
-   * (7) Withdraw funds
+   * Withdraw funds
    */
   ix = await withdrawTokens(
     mintKey,
@@ -387,7 +387,7 @@ test("End to end test", async () => {
   );
 
   /**
-   * (8) Sends funds to the tokenized domain (tokens + SOL)
+   * Sends funds to the tokenized domain (tokens + SOL)
    */
   await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
@@ -396,7 +396,7 @@ test("End to end test", async () => {
   bobExpectedBalance.token += mintAmount;
 
   /**
-   * (9) Redeem NFT
+   * Redeem NFT
    */
   ix = await redeemNft(nameKey, bob.publicKey, programId);
   tx = await signAndSendTransactionInstructions(
@@ -421,7 +421,7 @@ test("End to end test", async () => {
   expect(nftRecord.tag).toBe(Tag.InactiveRecord);
 
   /**
-   * (10) Withdraw funds
+   * Withdraw funds
    */
   ix = await withdrawTokens(
     mintKey,
@@ -450,7 +450,7 @@ test("End to end test", async () => {
   );
 
   /**
-   * (11) Create NFT again
+   * Create NFT again
    */
   ix = await createNft(
     name,
@@ -485,7 +485,7 @@ test("End to end test", async () => {
   expect(nftRecord.tag).toBe(Tag.ActiveRecord);
 
   /**
-   * (12) Verify metadata
+   * Verify metadata
    */
   const metadata = await Metadata.findByMint(connection, mintKey);
 

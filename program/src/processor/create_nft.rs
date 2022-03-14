@@ -16,9 +16,11 @@ use {
     },
     borsh::{BorshDeserialize, BorshSerialize},
     mpl_token_metadata::{
-        instruction::{create_metadata_accounts_v2, set_and_verify_collection},
+        instruction::{
+            create_metadata_accounts_v2, set_and_verify_collection, update_metadata_accounts_v2,
+        },
         pda::{find_master_edition_account, find_metadata_account},
-        state::Creator,
+        state::{Creator, DataV2},
     },
     solana_program::{
         account_info::{next_account_info, AccountInfo},
@@ -265,14 +267,13 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     )?;
 
     // Create metadata
+    let central_creator = Creator {
+        address: crate::central_state::KEY,
+        verified: true,
+        share: 0,
+    };
     if accounts.metadata_account.data_is_empty() {
         msg!("+ Creating metadata");
-        let central_creator = Creator {
-            address: crate::central_state::KEY,
-            verified: true,
-            share: 0,
-        };
-
         let ix = create_metadata_accounts_v2(
             mpl_token_metadata::ID,
             *accounts.metadata_account.key,
@@ -302,17 +303,24 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             ],
             &[seeds],
         )?;
-
-        msg!("+ Verifying collection");
-        let ix = set_and_verify_collection(
+    } else {
+        msg!("+ Metadata already exists");
+        let data = DataV2 {
+            name,
+            symbol: META_SYMBOL.to_string(),
+            uri,
+            seller_fee_basis_points: SELLER_BASIS,
+            creators: Some(vec![central_creator, CREATOR_FEE]),
+            collection: None,
+            uses: None,
+        };
+        let ix = update_metadata_accounts_v2(
             mpl_token_metadata::ID,
             metadata_key,
             crate::central_state::KEY,
-            *accounts.fee_payer.key,
-            crate::central_state::KEY,
-            collection_mint,
-            collection_metadata,
-            edition_key,
+            Some(crate::central_state::KEY),
+            Some(data),
+            None,
             None,
         );
         invoke_signed(
@@ -321,18 +329,37 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
                 accounts.metadata_program.clone(),
                 accounts.metadata_account.clone(),
                 accounts.central_state.clone(),
-                accounts.fee_payer.clone(),
-                accounts.central_state.clone(),
-                accounts.collection_mint.clone(),
-                accounts.collection_metadata.clone(),
-                accounts.edition_account.clone(),
             ],
             &[seeds],
-        )?;
-    } else {
-        msg!("+ Metadata already exists");
-        // TODO maybe update metadata to override what could have been written in the account?
+        )?
     }
+
+    msg!("+ Verifying collection");
+    let ix = set_and_verify_collection(
+        mpl_token_metadata::ID,
+        metadata_key,
+        crate::central_state::KEY,
+        *accounts.fee_payer.key,
+        crate::central_state::KEY,
+        collection_mint,
+        collection_metadata,
+        edition_key,
+        None,
+    );
+    invoke_signed(
+        &ix,
+        &[
+            accounts.metadata_program.clone(),
+            accounts.metadata_account.clone(),
+            accounts.central_state.clone(),
+            accounts.fee_payer.clone(),
+            accounts.central_state.clone(),
+            accounts.collection_mint.clone(),
+            accounts.collection_metadata.clone(),
+            accounts.edition_account.clone(),
+        ],
+        &[seeds],
+    )?;
 
     // Transfer domain
     let ix = transfer(
