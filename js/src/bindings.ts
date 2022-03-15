@@ -10,7 +10,7 @@ import {
   COLLECTION_PREFIX,
   MINT_PREFIX,
   NftRecord,
-  METADA_SIGNER,
+  METADATA_SIGNER,
 } from "./state";
 import {
   TOKEN_PROGRAM_ID,
@@ -24,14 +24,27 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import { NAME_PROGRAM_ID } from "@bonfida/spl-name-service";
 
+/**
+ * Mainnet program ID
+ */
 export const NAME_TOKENIZER_ID = new PublicKey(
   "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk"
 );
 
+/**
+ * Devnet program ID (might not have the latest version deployed!)
+ */
 export const NAME_TOKENIZER_ID_DEVNET = new PublicKey(
   "45gRSRZmK6NDEJrCZ72MMddjA1ozufq9YQpm41poPXCE"
 );
 
+/**
+ * This function can be used to create the mint of a domain name
+ * @param nameAccount The domain name the mint represents
+ * @param feePayer The fee payer of the transaction
+ * @param programId The Name tokenizer program ID
+ * @returns
+ */
 export const createMint = async (
   nameAccount: PublicKey,
   feePayer: PublicKey,
@@ -61,6 +74,12 @@ export const createMint = async (
   return [ix];
 };
 
+/**
+ * This function can be used to create the central state collection
+ * @param feePayer The fee payer of the transaction
+ * @param programId The Name tokenizer program ID
+ * @returns
+ */
 export const createCollection = async (
   feePayer: PublicKey,
   programId: PublicKey
@@ -103,6 +122,16 @@ export const createCollection = async (
   return [ix];
 };
 
+/**
+ * This function can be used to create to wrap a domain name into an NFT
+ * @param name The domain name (without .sol)
+ * @param uri The URI of the metadata
+ * @param nameAccount The domain name key
+ * @param nameOwner The owner of the domain name to tokenize
+ * @param feePayer The fee payer of the transaction
+ * @param programId The Name tokenizer program ID
+ * @returns
+ */
 export const createNft = async (
   name: string,
   uri: string,
@@ -157,12 +186,19 @@ export const createNft = async (
     SystemProgram.programId,
     NAME_PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
-    METADA_SIGNER
+    METADATA_SIGNER
   );
 
   return [ix];
 };
 
+/**
+ * This function can be used to unwrap a domain name that has been tokenized
+ * @param nameAccount The domain name key
+ * @param nftOwner The owner of the NFT to redeem
+ * @param programId The Name tokenizer program ID
+ * @returns
+ */
 export const redeemNft = async (
   nameAccount: PublicKey,
   nftOwner: PublicKey,
@@ -196,6 +232,15 @@ export const redeemNft = async (
   return [ix];
 };
 
+/**
+ * This function can be used to withdraw funds sent by mistake to an NftRecord while the domain was tokenized
+ * @param nftMint The mint of the NFT
+ * @param tokenMint The mint of the token to withdraw from the NftRecord
+ * @param nftOwner The owner of the NFT (if the NFT has been redeemed it should be the latest person who redeemed)
+ * @param nftRecord The NftRecord to which the funds were sent to
+ * @param programId The Name tokenizer program ID
+ * @returns
+ */
 export const withdrawTokens = async (
   nftMint: PublicKey,
   tokenMint: PublicKey,

@@ -4,7 +4,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 export const MINT_PREFIX = Buffer.from("tokenized_name");
 export const COLLECTION_PREFIX = Buffer.from("collection");
 
-export const METADA_SIGNER = new PublicKey(
+export const METADATA_SIGNER = new PublicKey(
   "ARy9ZzW9qFCb8c8Lxi4NCph1TRNabUaMH5tj4e5pqwHb"
 );
 

@@ -1,6 +1,12 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NAME_TOKENIZER_ID } from "./bindings";
 
+/**
+ * This function can be used to retrieve the NFTs of an owner
+ * @param connection A solana RPC connection
+ * @param owner The owner to retrieve NFTs for
+ * @returns
+ */
 export const getNftForOwner = async (
   connection: Connection,
   owner: PublicKey
@@ -27,6 +33,12 @@ export const getNftForOwner = async (
   return result;
 };
 
+/**
+ * This function can used to retrieve the NFT record for a name account
+ * @param connection A solana RPC connection
+ * @param nameAccount The name account to retrieve the NftRecord for
+ * @returns
+ */
 export const getMintFromNameAccount = async (
   connection: Connection,
   nameAccount: PublicKey
