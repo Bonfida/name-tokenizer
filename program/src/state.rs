@@ -31,7 +31,7 @@ pub const COLLECTION_NAME: &str = "Solana name service collection";
 pub const COLLECTION_URI: &str =
     "https://cloudflare-ipfs.com/ipfs/QmPeTioTicb19seM6itP8KD39syNZVJS2KHXNkxauSGXAJ";
 
-pub const METADA_SIGNER: Pubkey = pubkey!("ARy9ZzW9qFCb8c8Lxi4NCph1TRNabUaMH5tj4e5pqwHb");
+pub const METADATA_SIGNER: Pubkey = pubkey!("ARy9ZzW9qFCb8c8Lxi4NCph1TRNabUaMH5tj4e5pqwHb");
 
 #[derive(BorshSerialize, BorshDeserialize, BorshSize, PartialEq)]
 #[allow(missing_docs)]

@@ -3,7 +3,7 @@
 use crate::{
     cpi::Cpi,
     state::{
-        NftRecord, Tag, COLLECTION_PREFIX, CREATOR_FEE, METADA_SIGNER, META_SYMBOL, MINT_PREFIX,
+        NftRecord, Tag, COLLECTION_PREFIX, CREATOR_FEE, METADATA_SIGNER, META_SYMBOL, MINT_PREFIX,
         SELLER_BASIS,
     },
     utils::check_name,
@@ -144,7 +144,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
         check_account_key(accounts.rent_account, &sysvar::rent::ID)?;
         #[cfg(not(feature = "devnet"))]
-        check_account_key(accounts.metadata_signer, &METADA_SIGNER)?;
+        check_account_key(accounts.metadata_signer, &METADATA_SIGNER)?;
 
         // Check owners
         check_account_owner(accounts.mint, &spl_token::ID)?;

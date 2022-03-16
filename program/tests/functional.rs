@@ -5,7 +5,7 @@ use {
         entrypoint::process_instruction,
         instruction::{create_collection, create_mint, create_nft, redeem_nft, withdraw_tokens},
         state::{
-            CentralState, NftRecord, COLLECTION_PREFIX, METADA_SIGNER, MINT_PREFIX,
+            CentralState, NftRecord, COLLECTION_PREFIX, METADATA_SIGNER, MINT_PREFIX,
             ROOT_DOMAIN_ACCOUNT,
         },
     },
@@ -200,7 +200,7 @@ async fn test_offer() {
             collection_metadata: &collection_metadata_key,
             collection_mint: &collection_mint,
             #[cfg(not(feature = "devnet"))]
-            metadata_signer: &METADA_SIGNER,
+            metadata_signer: &METADATA_SIGNER,
         },
         create_nft::Params {
             name: name.to_string(),
@@ -345,7 +345,7 @@ async fn test_offer() {
             collection_metadata: &collection_metadata_key,
             collection_mint: &collection_mint,
             #[cfg(not(feature = "devnet"))]
-            metadata_signer: &METADA_SIGNER,
+            metadata_signer: &METADATA_SIGNER,
         },
         create_nft::Params {
             name: name.to_string(),
