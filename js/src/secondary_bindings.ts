@@ -64,3 +64,29 @@ export const getMintFromNameAccount = async (
 
   return result;
 };
+
+export const getRecordFromMint = async (
+  connection: Connection,
+  mint: PublicKey
+) => {
+  const filters = [
+    {
+      memcmp: {
+        offset: 0,
+        bytes: "3",
+      },
+    },
+    {
+      memcmp: {
+        offset: 1 + 1 + 32 + 32,
+        bytes: mint.toBase58(),
+      },
+    },
+  ];
+
+  const result = await connection.getProgramAccounts(NAME_TOKENIZER_ID, {
+    filters,
+  });
+
+  return result;
+};
