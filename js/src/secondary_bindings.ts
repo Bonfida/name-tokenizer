@@ -65,6 +65,13 @@ export const getMintFromNameAccount = async (
   return result;
 };
 
+/**
+ * This function can be used to retrieve a NFT Record given a mint
+ *
+ * @param connection A solana RPC connection
+ * @param mint The mint of the NFT Record
+ * @returns
+ */
 export const getRecordFromMint = async (
   connection: Connection,
   mint: PublicKey
@@ -80,6 +87,28 @@ export const getRecordFromMint = async (
       memcmp: {
         offset: 1 + 1 + 32 + 32,
         bytes: mint.toBase58(),
+      },
+    },
+  ];
+
+  const result = await connection.getProgramAccounts(NAME_TOKENIZER_ID, {
+    filters,
+  });
+
+  return result;
+};
+
+/**
+ * This function can be used to retrieve all the active NFT record
+ * @param connection A solana RPC connection
+ * @returns
+ */
+export const getActiveRecords = async (connection: Connection) => {
+  const filters = [
+    {
+      memcmp: {
+        offset: 0,
+        bytes: "3",
       },
     },
   ];
