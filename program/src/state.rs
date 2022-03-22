@@ -68,10 +68,10 @@ pub struct NftRecord {
     /// Nonce
     pub nonce: u8,
 
-    /// Name account of the offer
+    /// Name account of the record
     pub name_account: Pubkey,
 
-    /// Offer owner
+    /// Record owner
     pub owner: Pubkey,
 
     /// NFT mint

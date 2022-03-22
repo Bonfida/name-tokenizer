@@ -14,6 +14,9 @@
 3. [Collection](#collection)
 4. [Mint](#mint)
 5. [NFT](#nft)
+6. [Tests](#tests)
+   - Rust
+   - JS
 
 <br />
 <a name="program-id"></a>
@@ -71,10 +74,10 @@ pub struct NftRecord {
     /// Nonce
     pub nonce: u8,
 
-    /// Name account of the offer
+    /// Name account of the record
     pub name_account: Pubkey,
 
-    /// Offer owner
+    /// Record owner
     pub owner: Pubkey,
 
     /// NFT mint
@@ -86,3 +89,24 @@ If funds are sent by mistake to the `NftRecord` instead of the NFT holder while 
 
 - If the `NftRecord` is active i.e domain is tokenized: The correct owner is the NFT holder
 - If `NftRecord` is inactive i.e the NFT has been redeemed: The correct owner is the last person who redeemed (`owner` field in the `NftRecord`)
+
+<br />
+<a name="tests"></a>
+<h2 align="center">Tests</h2>
+<br />
+
+### Rust
+
+Functional Rust tests can be run with
+
+```
+cargo test-bpf --features devnet
+```
+
+### JS
+
+End to end tests can be run with
+
+```
+yarn jest
+```
