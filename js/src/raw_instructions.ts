@@ -8,77 +8,6 @@ export interface AccountKey {
   isSigner: boolean;
   isWritable: boolean;
 }
-export class withdrawTokensInstruction {
-  tag: number;
-  static schema: Schema = new Map([
-    [
-      withdrawTokensInstruction,
-      {
-        kind: "struct",
-        fields: [["tag", "u8"]],
-      },
-    ],
-  ]);
-  constructor() {
-    this.tag = 4;
-  }
-  serialize(): Uint8Array {
-    return serialize(withdrawTokensInstruction.schema, this);
-  }
-  getInstruction(
-    programId: PublicKey,
-    nft: PublicKey,
-    nftOwner: PublicKey,
-    nftRecord: PublicKey,
-    tokenDestination: PublicKey,
-    tokenSource: PublicKey,
-    splTokenProgram: PublicKey,
-    systemProgram: PublicKey
-  ): TransactionInstruction {
-    const data = Buffer.from(this.serialize());
-    let keys: AccountKey[] = [];
-    keys.push({
-      pubkey: nft,
-      isSigner: false,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: nftOwner,
-      isSigner: true,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: nftRecord,
-      isSigner: false,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: tokenDestination,
-      isSigner: false,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: tokenSource,
-      isSigner: false,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: splTokenProgram,
-      isSigner: false,
-      isWritable: false,
-    });
-    keys.push({
-      pubkey: systemProgram,
-      isSigner: false,
-      isWritable: false,
-    });
-    return new TransactionInstruction({
-      keys,
-      programId,
-      data,
-    });
-  }
-}
 export class createCollectionInstruction {
   tag: number;
   static schema: Schema = new Map([
@@ -170,6 +99,77 @@ export class createCollectionInstruction {
     });
     keys.push({
       pubkey: rentAccount,
+      isSigner: false,
+      isWritable: false,
+    });
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
+export class createMintInstruction {
+  tag: number;
+  static schema: Schema = new Map([
+    [
+      createMintInstruction,
+      {
+        kind: "struct",
+        fields: [["tag", "u8"]],
+      },
+    ],
+  ]);
+  constructor() {
+    this.tag = 0;
+  }
+  serialize(): Uint8Array {
+    return serialize(createMintInstruction.schema, this);
+  }
+  getInstruction(
+    programId: PublicKey,
+    mint: PublicKey,
+    nameAccount: PublicKey,
+    centralState: PublicKey,
+    splTokenProgram: PublicKey,
+    systemProgram: PublicKey,
+    rentAccount: PublicKey,
+    feePayer: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys: AccountKey[] = [];
+    keys.push({
+      pubkey: mint,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: nameAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: centralState,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: splTokenProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: systemProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: rentAccount,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: feePayer,
       isSigner: false,
       isWritable: false,
     });
@@ -319,77 +319,6 @@ export class createNftInstruction {
     });
   }
 }
-export class createMintInstruction {
-  tag: number;
-  static schema: Schema = new Map([
-    [
-      createMintInstruction,
-      {
-        kind: "struct",
-        fields: [["tag", "u8"]],
-      },
-    ],
-  ]);
-  constructor() {
-    this.tag = 0;
-  }
-  serialize(): Uint8Array {
-    return serialize(createMintInstruction.schema, this);
-  }
-  getInstruction(
-    programId: PublicKey,
-    mint: PublicKey,
-    nameAccount: PublicKey,
-    centralState: PublicKey,
-    splTokenProgram: PublicKey,
-    systemProgram: PublicKey,
-    rentAccount: PublicKey,
-    feePayer: PublicKey
-  ): TransactionInstruction {
-    const data = Buffer.from(this.serialize());
-    let keys: AccountKey[] = [];
-    keys.push({
-      pubkey: mint,
-      isSigner: false,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: nameAccount,
-      isSigner: false,
-      isWritable: true,
-    });
-    keys.push({
-      pubkey: centralState,
-      isSigner: false,
-      isWritable: false,
-    });
-    keys.push({
-      pubkey: splTokenProgram,
-      isSigner: false,
-      isWritable: false,
-    });
-    keys.push({
-      pubkey: systemProgram,
-      isSigner: false,
-      isWritable: false,
-    });
-    keys.push({
-      pubkey: rentAccount,
-      isSigner: false,
-      isWritable: false,
-    });
-    keys.push({
-      pubkey: feePayer,
-      isSigner: false,
-      isWritable: false,
-    });
-    return new TransactionInstruction({
-      keys,
-      programId,
-      data,
-    });
-  }
-}
 export class redeemNftInstruction {
   tag: number;
   static schema: Schema = new Map([
@@ -429,6 +358,144 @@ export class redeemNftInstruction {
       isSigner: false,
       isWritable: true,
     });
+    keys.push({
+      pubkey: nftOwner,
+      isSigner: true,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: nftRecord,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: nameAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: splTokenProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: splNameServiceProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
+export class withdrawTokensInstruction {
+  tag: number;
+  static schema: Schema = new Map([
+    [
+      withdrawTokensInstruction,
+      {
+        kind: "struct",
+        fields: [["tag", "u8"]],
+      },
+    ],
+  ]);
+  constructor() {
+    this.tag = 4;
+  }
+  serialize(): Uint8Array {
+    return serialize(withdrawTokensInstruction.schema, this);
+  }
+  getInstruction(
+    programId: PublicKey,
+    nft: PublicKey,
+    nftOwner: PublicKey,
+    nftRecord: PublicKey,
+    tokenDestination: PublicKey,
+    tokenSource: PublicKey,
+    splTokenProgram: PublicKey,
+    systemProgram: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys: AccountKey[] = [];
+    keys.push({
+      pubkey: nft,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: nftOwner,
+      isSigner: true,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: nftRecord,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: tokenDestination,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: tokenSource,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: splTokenProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: systemProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
+export class editDataInstruction {
+  tag: number;
+  offset: number;
+  data: number[];
+  static schema: Schema = new Map([
+    [
+      editDataInstruction,
+      {
+        kind: "struct",
+        fields: [
+          ["tag", "u8"],
+          ["offset", "u32"],
+          ["data", ["u8"]],
+        ],
+      },
+    ],
+  ]);
+  constructor(obj: { offset: number; data: number[] }) {
+    this.tag = 5;
+    this.offset = obj.offset;
+    this.data = obj.data;
+  }
+  serialize(): Uint8Array {
+    return serialize(editDataInstruction.schema, this);
+  }
+  getInstruction(
+    programId: PublicKey,
+    nftOwner: PublicKey,
+    nftRecord: PublicKey,
+    nameAccount: PublicKey,
+    splTokenProgram: PublicKey,
+    splNameServiceProgram: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys: AccountKey[] = [];
     keys.push({
       pubkey: nftOwner,
       isSigner: true,

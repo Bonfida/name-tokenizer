@@ -88,6 +88,74 @@ class CreateMintInstruction:
         return TransactionInstruction(keys, programId, data)
 
 
+class CreateNftInstruction:
+    schema = CStruct(
+        "tag" / U8,
+        "name" / String,
+        "uri" / String,
+    )
+
+    def serialize(
+        self,
+        name: str,
+        uri: str,
+    ) -> str:
+        return self.schema.build(
+            {
+                "tag": 2,
+                "name": name,
+                "uri": uri,
+            }
+        )
+
+    def getInstruction(
+        self,
+        programId: PublicKey,
+        mint: PublicKey,
+        nft_destination: PublicKey,
+        name_account: PublicKey,
+        nft_record: PublicKey,
+        name_owner: PublicKey,
+        metadata_account: PublicKey,
+        edition_account: PublicKey,
+        collection_metadata: PublicKey,
+        collection_mint: PublicKey,
+        central_state: PublicKey,
+        fee_payer: PublicKey,
+        spl_token_program: PublicKey,
+        metadata_program: PublicKey,
+        system_program: PublicKey,
+        spl_name_service_program: PublicKey,
+        rent_account: PublicKey,
+        metadata_signer: PublicKey,
+        name: str,
+        uri: str,
+    ) -> TransactionInstruction:
+        data = self.serialize(
+            name,
+            uri,
+        )
+        keys: List[AccountMeta] = []
+        keys.append(AccountMeta(mint, False, True))
+        keys.append(AccountMeta(nft_destination, False, True))
+        keys.append(AccountMeta(name_account, False, True))
+        keys.append(AccountMeta(nft_record, False, True))
+        keys.append(AccountMeta(name_owner, True, True))
+        keys.append(AccountMeta(metadata_account, False, True))
+        keys.append(AccountMeta(edition_account, False, False))
+        keys.append(AccountMeta(collection_metadata, False, False))
+        keys.append(AccountMeta(collection_mint, False, False))
+        keys.append(AccountMeta(central_state, False, True))
+        keys.append(AccountMeta(fee_payer, True, True))
+        keys.append(AccountMeta(spl_token_program, False, False))
+        keys.append(AccountMeta(metadata_program, False, False))
+        keys.append(AccountMeta(system_program, False, False))
+        keys.append(AccountMeta(spl_name_service_program, False, False))
+        keys.append(AccountMeta(rent_account, False, False))
+        keys.append(AccountMeta(metadata_signer, True, False))
+        return TransactionInstruction(keys, programId, data)
+
+
 class RedeemNftInstruction:
     schema = CStruct(
         "tag" / U8,
@@ -162,69 +230,45 @@ class WithdrawTokensInstruction:
         return TransactionInstruction(keys, programId, data)
 
 
-class CreateNftInstruction:
+class EditDataInstruction:
     schema = CStruct(
         "tag" / U8,
-        "name" / String,
-        "uri" / String,
+        "offset" / U32,
+        "data" / Vec(U8),
     )
 
     def serialize(
         self,
-        name: str,
-        uri: str,
+        offset: int,
+        data: List[int],
     ) -> str:
         return self.schema.build(
             {
-                "tag": 2,
-                "name": name,
-                "uri": uri,
+                "tag": 5,
+                "offset": offset,
+                "data": data,
             }
         )
 
     def getInstruction(
         self,
         programId: PublicKey,
-        mint: PublicKey,
-        nft_destination: PublicKey,
-        name_account: PublicKey,
+        nft_owner: PublicKey,
         nft_record: PublicKey,
-        name_owner: PublicKey,
-        metadata_account: PublicKey,
-        edition_account: PublicKey,
-        collection_metadata: PublicKey,
-        collection_mint: PublicKey,
-        central_state: PublicKey,
-        fee_payer: PublicKey,
+        name_account: PublicKey,
         spl_token_program: PublicKey,
-        metadata_program: PublicKey,
-        system_program: PublicKey,
         spl_name_service_program: PublicKey,
-        rent_account: PublicKey,
-        metadata_signer: PublicKey,
-        name: str,
-        uri: str,
+        offset: int,
+        data: List[int],
     ) -> TransactionInstruction:
         data = self.serialize(
-            name,
-            uri,
+            offset,
+            data,
         )
         keys: List[AccountMeta] = []
-        keys.append(AccountMeta(mint, False, True))
-        keys.append(AccountMeta(nft_destination, False, True))
-        keys.append(AccountMeta(name_account, False, True))
+        keys.append(AccountMeta(nft_owner, True, True))
         keys.append(AccountMeta(nft_record, False, True))
-        keys.append(AccountMeta(name_owner, True, True))
-        keys.append(AccountMeta(metadata_account, False, True))
-        keys.append(AccountMeta(edition_account, False, False))
-        keys.append(AccountMeta(collection_metadata, False, False))
-        keys.append(AccountMeta(collection_mint, False, False))
-        keys.append(AccountMeta(central_state, False, True))
-        keys.append(AccountMeta(fee_payer, True, True))
+        keys.append(AccountMeta(name_account, False, True))
         keys.append(AccountMeta(spl_token_program, False, False))
-        keys.append(AccountMeta(metadata_program, False, False))
-        keys.append(AccountMeta(system_program, False, False))
         keys.append(AccountMeta(spl_name_service_program, False, False))
-        keys.append(AccountMeta(rent_account, False, False))
-        keys.append(AccountMeta(metadata_signer, True, False))
         return TransactionInstruction(keys, programId, data)
