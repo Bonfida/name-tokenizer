@@ -21,6 +21,8 @@ use {
 
 pub mod common;
 
+use name_tokenizer::instruction::edit_data;
+
 use crate::common::utils::{mint_bootstrap, sign_send_instructions};
 
 #[tokio::test]
@@ -51,19 +53,23 @@ async fn test_offer() {
         Some(&ROOT_DOMAIN_ACCOUNT),
     );
 
-    let root_domain_data = spl_name_service::state::NameRecordHeader {
-        parent_name: ROOT_DOMAIN_ACCOUNT,
-        owner: alice.pubkey(),
-        class: Pubkey::default(),
-    }
-    .try_to_vec()
-    .unwrap();
+    let name_domain_data = [
+        spl_name_service::state::NameRecordHeader {
+            parent_name: ROOT_DOMAIN_ACCOUNT,
+            owner: alice.pubkey(),
+            class: Pubkey::default(),
+        }
+        .try_to_vec()
+        .unwrap(),
+        vec![0; 1000],
+    ]
+    .concat();
 
     program_test.add_account(
         name_key,
         Account {
             lamports: 1_000_000,
-            data: root_domain_data,
+            data: name_domain_data,
             owner: spl_name_service::id(),
             ..Account::default()
         },
@@ -208,6 +214,26 @@ async fn test_offer() {
         },
     );
 
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
+        .await
+        .unwrap();
+
+    ////
+    // Edit data
+    ////
+    let ix = edit_data(
+        name_tokenizer::instruction::edit_data::Accounts {
+            nft_owner: &alice.pubkey(),
+            nft_record: &nft_record,
+            name_account: &name_key,
+            spl_token_program: &spl_token::ID,
+            spl_name_service_program: &spl_name_service::ID,
+        },
+        edit_data::Params {
+            offset: 0,
+            data: vec![1],
+        },
+    );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
         .await
         .unwrap();

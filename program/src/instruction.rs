@@ -1,5 +1,5 @@
 pub use crate::processor::{
-    create_collection, create_mint, create_nft, redeem_nft, withdraw_tokens,
+    create_collection, create_mint, create_nft, edit_data, redeem_nft, withdraw_tokens,
 };
 use {
     bonfida_utils::InstructionsAccount,
@@ -86,6 +86,16 @@ pub enum ProgramInstruction {
     /// | 5     | ❌        | ❌      | The SPL token program account              |
     /// | 6     | ❌        | ❌      | The system program account                 |
     WithdrawTokens,
+    /// Edit the data of the tokenized name account
+    ///
+    /// | Index | Writable | Signer | Description                                |
+    /// | ---------------------------------------------------------------------- |
+    /// | 0     | ✅        | ✅      | The NFT owner account                     |
+    /// | 1     | ✅        | ❌      | The NFT record account                    |
+    /// | 2     | ✅        | ❌      | The domain name account                   |
+    /// | 3     | ❌        | ❌      | The SPL token program account             |
+    /// | 4     | ❌        | ❌      | The SPL name service program account      |
+    EditData,
 }
 #[allow(missing_docs)]
 pub fn create_mint(
@@ -125,4 +135,8 @@ pub fn create_collection(
         ProgramInstruction::CreateCollection as u8,
         params,
     )
+}
+#[allow(missing_docs)]
+pub fn edit_data(accounts: edit_data::Accounts<Pubkey>, params: edit_data::Params) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::EditData as u8, params)
 }

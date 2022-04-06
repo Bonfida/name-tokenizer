@@ -12,6 +12,7 @@ use crate::instruction::ProgramInstruction;
 pub mod create_collection;
 pub mod create_mint;
 pub mod create_nft;
+pub mod edit_data;
 pub mod redeem_nft;
 pub mod withdraw_tokens;
 
@@ -51,6 +52,12 @@ impl Processor {
             ProgramInstruction::WithdrawTokens => {
                 msg!("Instruction: Withdraw tokens");
                 withdraw_tokens::process(program_id, accounts)?
+            }
+            ProgramInstruction::EditData => {
+                msg!("Instruction: Edit data");
+                let params = edit_data::Params::try_from_slice(instruction_data)
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                edit_data::process(program_id, accounts, params)?
             }
         }
 
