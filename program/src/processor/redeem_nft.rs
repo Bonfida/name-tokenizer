@@ -85,9 +85,9 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 }
 pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let accounts = Accounts::parse(accounts, program_id)?;
+    let mut nft_record = NftRecord::from_account_info(accounts.nft_record, Tag::ActiveRecord)?;
 
-    let (nft_record_key, nft_record_nonce) =
-        NftRecord::find_key(accounts.name_account.key, program_id);
+    let (nft_record_key, _) = NftRecord::find_key(accounts.name_account.key, program_id);
     check_account_key(accounts.nft_record, &nft_record_key)?;
 
     let (mint, _) = Pubkey::find_program_address(
@@ -100,7 +100,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let ix = burn(
         &spl_token::ID,
         accounts.nft_source.key,
-        &mint,
+        &nft_record.nft_mint,
         accounts.nft_owner.key,
         &[],
         1,
@@ -126,7 +126,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let seeds: &[&[u8]] = &[
         NftRecord::SEED,
         &accounts.name_account.key.to_bytes(),
-        &[nft_record_nonce],
+        &[nft_record.nonce],
     ];
     invoke_signed(
         &ix,
@@ -140,8 +140,6 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     )?;
 
     // Update NFT record
-    let mut nft_record = NftRecord::from_account_info(accounts.nft_record, Tag::ActiveRecord)?;
-
     nft_record.tag = Tag::InactiveRecord;
     nft_record.owner = *accounts.nft_owner.key;
 

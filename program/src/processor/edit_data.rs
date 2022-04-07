@@ -15,9 +15,11 @@ use {
     },
 };
 
+use solana_program::{msg, program_pack::Pack};
 use spl_name_service::instruction::update;
+use spl_token::state::Account;
 
-use crate::state::NftRecord;
+use crate::state::{NftRecord, Tag};
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {
@@ -32,6 +34,9 @@ pub struct Accounts<'a, T> {
     /// The NFT owner account
     #[cons(writable, signer)]
     pub nft_owner: &'a T,
+
+    /// The NFT account
+    pub nft_account: &'a T,
 
     /// The NFT record account
     #[cons(writable)]
@@ -56,6 +61,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         let accounts_iter = &mut accounts.iter();
         let accounts = Accounts {
             nft_owner: next_account_info(accounts_iter)?,
+            nft_account: next_account_info(accounts_iter)?,
             nft_record: next_account_info(accounts_iter)?,
             name_account: next_account_info(accounts_iter)?,
             spl_token_program: next_account_info(accounts_iter)?,
@@ -69,6 +75,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         // Check owners
         check_account_owner(accounts.nft_record, program_id)?;
         check_account_owner(accounts.name_account, &spl_name_service::ID)?;
+        check_account_owner(accounts.nft_account, &spl_token::ID)?;
 
         // Check signer
         check_signer(accounts.nft_owner)?;
@@ -76,14 +83,26 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         Ok(accounts)
     }
 }
+
 pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) -> ProgramResult {
     let accounts = Accounts::parse(accounts, program_id)?;
 
-    let (nft_record_key, nft_record_nonce) =
-        NftRecord::find_key(accounts.name_account.key, program_id);
+    let (nft_record_key, _) = NftRecord::find_key(accounts.name_account.key, program_id);
     check_account_key(accounts.nft_record, &nft_record_key)?;
 
-    // Transfer domain
+    let nft_record = NftRecord::from_account_info(accounts.nft_record, Tag::ActiveRecord)?;
+    let nft = Account::unpack(&accounts.nft_account.data.borrow())?;
+
+    if nft.mint != nft_record.nft_mint {
+        msg!("+ NFT mint mismatch");
+        return Err(ProgramError::InvalidArgument);
+    }
+    if nft.amount != 1 {
+        msg!("+ Invalid NFT amount, received {}", nft.amount);
+        return Err(ProgramError::InvalidArgument);
+    }
+    check_account_key(accounts.nft_owner, &nft.owner)?;
+
     let ix = update(
         spl_name_service::ID,
         params.offset,
@@ -95,13 +114,12 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     let seeds: &[&[u8]] = &[
         NftRecord::SEED,
         &accounts.name_account.key.to_bytes(),
-        &[nft_record_nonce],
+        &[nft_record.nonce],
     ];
     invoke_signed(
         &ix,
         &[
             accounts.spl_name_service_program.clone(),
-            accounts.nft_owner.clone(),
             accounts.nft_record.clone(),
             accounts.name_account.clone(),
         ],
