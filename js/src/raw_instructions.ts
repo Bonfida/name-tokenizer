@@ -489,6 +489,7 @@ export class editDataInstruction {
   getInstruction(
     programId: PublicKey,
     nftOwner: PublicKey,
+    nftAccount: PublicKey,
     nftRecord: PublicKey,
     nameAccount: PublicKey,
     splTokenProgram: PublicKey,
@@ -499,12 +500,17 @@ export class editDataInstruction {
     keys.push({
       pubkey: nftOwner,
       isSigner: true,
-      isWritable: true,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: nftAccount,
+      isSigner: false,
+      isWritable: false,
     });
     keys.push({
       pubkey: nftRecord,
       isSigner: false,
-      isWritable: true,
+      isWritable: false,
     });
     keys.push({
       pubkey: nameAccount,

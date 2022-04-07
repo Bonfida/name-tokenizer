@@ -254,6 +254,7 @@ class EditDataInstruction:
         self,
         programId: PublicKey,
         nft_owner: PublicKey,
+        nft_account: PublicKey,
         nft_record: PublicKey,
         name_account: PublicKey,
         spl_token_program: PublicKey,
@@ -266,8 +267,9 @@ class EditDataInstruction:
             data,
         )
         keys: List[AccountMeta] = []
-        keys.append(AccountMeta(nft_owner, True, True))
-        keys.append(AccountMeta(nft_record, False, True))
+        keys.append(AccountMeta(nft_owner, True, False))
+        keys.append(AccountMeta(nft_account, False, False))
+        keys.append(AccountMeta(nft_record, False, False))
         keys.append(AccountMeta(name_account, False, True))
         keys.append(AccountMeta(spl_token_program, False, False))
         keys.append(AccountMeta(spl_name_service_program, False, False))
