@@ -73,9 +73,9 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
 
         // Check owners
+        check_account_owner(accounts.nft_account, &spl_token::ID)?;
         check_account_owner(accounts.nft_record, program_id)?;
         check_account_owner(accounts.name_account, &spl_name_service::ID)?;
-        check_account_owner(accounts.nft_account, &spl_token::ID)?;
 
         // Check signer
         check_signer(accounts.nft_owner)?;
