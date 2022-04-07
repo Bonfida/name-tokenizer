@@ -228,6 +228,7 @@ async fn test_offer() {
             name_account: &name_key,
             spl_token_program: &spl_token::ID,
             spl_name_service_program: &spl_name_service::ID,
+            nft_account: &alice_nft_ata,
         },
         edit_data::Params {
             offset: 0,

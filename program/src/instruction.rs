@@ -91,10 +91,11 @@ pub enum ProgramInstruction {
     /// | Index | Writable | Signer | Description                                |
     /// | ---------------------------------------------------------------------- |
     /// | 0     | ✅        | ✅      | The NFT owner account                     |
-    /// | 1     | ✅        | ❌      | The NFT record account                    |
-    /// | 2     | ✅        | ❌      | The domain name account                   |
-    /// | 3     | ❌        | ❌      | The SPL token program account             |
-    /// | 4     | ❌        | ❌      | The SPL name service program account      |
+    /// | 1     | ❌        | ❌      | The NFT account                           |
+    /// | 2     | ✅        | ❌      | The NFT record account                    |
+    /// | 3     | ✅        | ❌      | The domain name account                   |
+    /// | 4     | ❌        | ❌      | The SPL token program account             |
+    /// | 5     | ❌        | ❌      | The SPL name service program account      |
     EditData,
 }
 #[allow(missing_docs)]
