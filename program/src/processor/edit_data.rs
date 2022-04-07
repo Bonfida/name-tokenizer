@@ -1,4 +1,4 @@
-//! Redeem a tokenized domain name
+//! Edit the data registry of a tokenized domain name
 
 use {
     bonfida_utils::{
@@ -32,14 +32,13 @@ pub struct Params {
 #[derive(InstructionsAccount, Debug)]
 pub struct Accounts<'a, T> {
     /// The NFT owner account
-    #[cons(writable, signer)]
+    #[cons(signer)]
     pub nft_owner: &'a T,
 
     /// The NFT account
     pub nft_account: &'a T,
 
     /// The NFT record account
-    #[cons(writable)]
     pub nft_record: &'a T,
 
     /// The domain name account

@@ -11,7 +11,7 @@ use {
 #[derive(BorshDeserialize, BorshSerialize, FromPrimitive)]
 pub enum ProgramInstruction {
     /// Create the NFT mint
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                   |
     /// | --------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT           |
@@ -23,7 +23,7 @@ pub enum ProgramInstruction {
     /// | 6     | ❌        | ❌      | Fee payer account             |
     CreateMint,
     /// Create a verified collection
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                                                   |
     /// | ----------------------------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the collection                                    |
@@ -40,7 +40,7 @@ pub enum ProgramInstruction {
     /// | 11    | ❌        | ❌      | Rent sysvar account                                           |
     CreateCollection,
     /// Tokenize a domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                          |
     /// | ---------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                  |
@@ -53,7 +53,7 @@ pub enum ProgramInstruction {
     /// | 7     | ❌        | ❌      | Collection                           |
     /// | 8     | ❌        | ❌      | Mint of the collection               |
     /// | 9     | ✅        | ❌      | The central state account            |
-    /// | 10    | ✅        | ❌      | The fee payer account                |
+    /// | 10    | ✅        | ✅      | The fee payer account                |
     /// | 11    | ❌        | ❌      | The SPL token program account        |
     /// | 12    | ❌        | ❌      | The metadata program account         |
     /// | 13    | ❌        | ❌      | The system program account           |
@@ -62,7 +62,7 @@ pub enum ProgramInstruction {
     /// | 16    | ❌        | ✅      | The metadata signer                  |
     CreateNft,
     /// Redeem a tokenized domain name
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                               |
     /// | --------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The mint of the NFT                       |
@@ -75,7 +75,7 @@ pub enum ProgramInstruction {
     RedeemNft,
     /// Withdraw funds that have been sent to the escrow
     /// while the domain was tokenized
-    ///
+    /// 
     /// | Index | Writable | Signer | Description                                |
     /// | ---------------------------------------------------------------------- |
     /// | 0     | ✅        | ❌      | The token account holding the NFT          |
@@ -86,16 +86,16 @@ pub enum ProgramInstruction {
     /// | 5     | ❌        | ❌      | The SPL token program account              |
     /// | 6     | ❌        | ❌      | The system program account                 |
     WithdrawTokens,
-    /// Edit the data of the tokenized name account
-    ///
-    /// | Index | Writable | Signer | Description                                |
-    /// | ---------------------------------------------------------------------- |
-    /// | 0     | ✅        | ✅      | The NFT owner account                     |
-    /// | 1     | ❌        | ❌      | The NFT account                           |
-    /// | 2     | ✅        | ❌      | The NFT record account                    |
-    /// | 3     | ✅        | ❌      | The domain name account                   |
-    /// | 4     | ❌        | ❌      | The SPL token program account             |
-    /// | 5     | ❌        | ❌      | The SPL name service program account      |
+    /// Edit the data registry of a tokenized domain name
+    /// 
+    /// | Index | Writable | Signer | Description                          |
+    /// | ---------------------------------------------------------------- |
+    /// | 0     | ❌        | ✅      | The NFT owner account                |
+    /// | 1     | ❌        | ❌      | The NFT account                      |
+    /// | 2     | ❌        | ❌      | The NFT record account               |
+    /// | 3     | ✅        | ❌      | The domain name account              |
+    /// | 4     | ❌        | ❌      | The SPL token program account        |
+    /// | 5     | ❌        | ❌      | The SPL name service program account |
     EditData,
 }
 #[allow(missing_docs)]
