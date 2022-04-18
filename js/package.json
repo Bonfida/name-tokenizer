@@ -40,15 +40,21 @@
     "ts-node": "^9.1.1",
     "tslib": "^2.2.0",
     "typedoc": "^0.22.3",
-    "typescript": "^4.1.3"
-  },
-  "dependencies": {
+    "typescript": "^4.1.3",
     "@bonfida/spl-name-service": "^0.1.30",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
     "@solana/spl-token": "0.1.8",
-    "@solana/web3.js": "^1.30.2",
+    "@solana/web3.js": "^1.30.2"
+  },
+  "dependencies": {
     "bn.js": "^5.2.0",
     "borsh": "^0.6.0",
     "bs58": "4.0.1"
+  },
+  "peerDependencies": {
+    "@bonfida/spl-name-service": "^0.1.30",
+    "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
+    "@solana/spl-token": "0.1.8",
+    "@solana/web3.js": "^1.30.2"
   }
 }
