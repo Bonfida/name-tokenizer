@@ -11,7 +11,7 @@
   },
   "compilerOptions": {
     "allowJs": true,
-    "module": "commonjs",
+    "module": "esnext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2019",
@@ -20,7 +20,7 @@
     "declaration": true,
     "noImplicitAny": false,
     "moduleResolution": "node",
-    "sourceMap": true,
+    "sourceMap": false,
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
