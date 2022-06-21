@@ -14,7 +14,7 @@ import {
 } from "./state";
 import {
   TOKEN_PROGRAM_ID,
-  Token,
+  getAssociatedTokenAddress,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
@@ -94,10 +94,7 @@ export const createCollection = async (
   );
   const collectionMetadata = await Metadata.getPDA(collectionMint);
   const editionAccount = await MasterEdition.getPDA(collectionMint);
-
-  const centralStateAta = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
+  const centralStateAta = await getAssociatedTokenAddress(
     collectionMint,
     centralKey,
     true
@@ -151,13 +148,7 @@ export const createNft = async (
   );
 
   const [nftRecord] = await NftRecord.findKey(nameAccount, programId);
-
-  const nftDestination = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    mint,
-    nameOwner
-  );
+  const nftDestination = await getAssociatedTokenAddress(mint, nameOwner);
 
   const metadataAccount = await Metadata.getPDA(mint);
 
@@ -210,13 +201,7 @@ export const redeemNft = async (
   );
 
   const [nftRecord] = await NftRecord.findKey(nameAccount, programId);
-
-  const nftSource = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    mint,
-    nftOwner
-  );
+  const nftSource = await getAssociatedTokenAddress(mint, nftOwner);
 
   const ix = new redeemNftInstruction().getInstruction(
     programId,
@@ -248,27 +233,13 @@ export const withdrawTokens = async (
   nftRecord: PublicKey,
   programId: PublicKey
 ) => {
-  const tokenDestination = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    tokenMint,
-    nftOwner
-  );
-
-  const tokenSource = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
+  const tokenDestination = await getAssociatedTokenAddress(tokenMint, nftOwner);
+  const tokenSource = await getAssociatedTokenAddress(
     tokenMint,
     nftRecord,
     true
   );
-
-  const nft = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    nftMint,
-    nftOwner
-  );
+  const nft = await getAssociatedTokenAddress(nftMint, nftOwner);
 
   const ix = new withdrawTokensInstruction().getInstruction(
     programId,
