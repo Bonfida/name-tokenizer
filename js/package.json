@@ -14,7 +14,8 @@
     "test": "jest --detectOpenHandles --coverage",
     "dev": "tsc && node dist/test.js",
     "prebuild": "rm -rf dist",
-    "build": "tsc",
+    "build": "rollup -c",
+    "build:rm": "rollup -c && rm -rf node_modules",
     "prepublish": "rm -rf dist && tsc",
     "lint": "yarn pretty && eslint .",
     "lint:fix": "yarn pretty:fix && eslint . --fix",
@@ -23,6 +24,12 @@
     "doc": "yarn typedoc src/index.ts"
   },
   "devDependencies": {
+    "@bonfida/spl-name-service": "^0.1.37",
+    "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-typescript": "^8.3.3",
+    "@solana/spl-token": "0.2.0",
+    "@solana/web3.js": "^1.44.1",
     "@tsconfig/recommended": "^1.0.1",
     "@types/bs58": "^4.0.1",
     "@types/jest": "^27.0.3",
@@ -34,27 +41,25 @@
     "jest": "^27.3.1",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
+    "rollup": "^2.75.7",
+    "rollup-plugin-terser": "^7.0.2",
     "save-dev": "0.0.1-security",
     "tmp": "^0.2.1",
     "ts-jest": "^27.0.7",
     "ts-node": "^9.1.1",
     "tslib": "^2.2.0",
     "typedoc": "^0.22.3",
-    "typescript": "^4.1.3",
-    "@bonfida/spl-name-service": "^0.1.30",
-    "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
-    "@solana/spl-token": "0.1.8",
-    "@solana/web3.js": "^1.30.2"
+    "typescript": "^4.1.3"
   },
   "dependencies": {
     "bn.js": "^5.2.0",
     "borsh": "^0.6.0",
-    "bs58": "4.0.1"
+    "bs58": "4.0.1",
+    "@metaplex-foundation/mpl-token-metadata": "^1.2.5"
   },
   "peerDependencies": {
-    "@bonfida/spl-name-service": "^0.1.30",
-    "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
-    "@solana/spl-token": "0.1.8",
-    "@solana/web3.js": "^1.30.2"
+    "@bonfida/spl-name-service": "^0.1.37",
+    "@solana/spl-token": "0.2.0",
+    "@solana/web3.js": "^1.44.1"
   }
 }
