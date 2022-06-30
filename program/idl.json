@@ -1,0 +1,384 @@
+{
+    "version": "0.1.0",
+    "name": "name-tokenizer",
+    "instructions": [
+        {
+            "name": "edit_data",
+            "accounts": [
+                {
+                    "name": "nftOwner",
+                    "isMut": false,
+                    "isSigner": true
+                },
+                {
+                    "name": "nftAccount",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "nftRecord",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "nameAccount",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "splTokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "splNameServiceProgram",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": [
+                {
+                    "name": "offset",
+                    "type": "u32"
+                },
+                {
+                    "name": "data",
+                    "type": {
+                        "vec": "u8"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "create_nft",
+            "accounts": [
+                {
+                    "name": "mint",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nftDestination",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nameAccount",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nftRecord",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nameOwner",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "metadataAccount",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "editionAccount",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "collectionMetadata",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "collectionMint",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "centralState",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "feePayer",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "splTokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "metadataProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "systemProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "splNameServiceProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "rentAccount",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "metadataSigner",
+                    "isMut": false,
+                    "isSigner": true
+                }
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "uri",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "create_collection",
+            "accounts": [
+                {
+                    "name": "collectionMint",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "edition",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "metadataAccount",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "centralState",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "centralStateNftAta",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "feePayer",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "splTokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "metadataProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "systemProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "splNameServiceProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "ataProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "rentAccount",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "withdraw_tokens",
+            "accounts": [
+                {
+                    "name": "nft",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nftOwner",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "nftRecord",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "tokenDestination",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "tokenSource",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "splTokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "systemProgram",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "create_mint",
+            "accounts": [
+                {
+                    "name": "mint",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nameAccount",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "centralState",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "splTokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "systemProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "rentAccount",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "feePayer",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "redeem_nft",
+            "accounts": [
+                {
+                    "name": "mint",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nftSource",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nftOwner",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "nftRecord",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "nameAccount",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "splTokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "splNameServiceProgram",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": []
+        }
+    ],
+    "accounts": [
+        {
+            "name": "NftRecord",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "tag",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "nonce",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "nameAccount",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "owner",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "nftMint",
+                        "type": "publicKey"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "CentralState",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "tag",
+                        "type": "u8"
+                    }
+                ]
+            }
+        }
+    ]
+}
