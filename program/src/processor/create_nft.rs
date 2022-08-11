@@ -17,7 +17,8 @@ use {
     borsh::{BorshDeserialize, BorshSerialize},
     mpl_token_metadata::{
         instruction::{
-            create_metadata_accounts_v2, set_and_verify_collection, update_metadata_accounts_v2,
+            create_metadata_accounts_v2, set_and_verify_collection, unverify_collection,
+            update_metadata_accounts_v2,
         },
         pda::{find_master_edition_account, find_metadata_account},
         state::{Creator, DataV2},
@@ -305,6 +306,30 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
         )?;
     } else {
         msg!("+ Metadata already exists");
+
+        // Unverify collection first
+        let ix = unverify_collection(
+            mpl_token_metadata::ID,
+            metadata_key,
+            crate::central_state::KEY,
+            collection_mint,
+            collection_metadata,
+            edition_key,
+            None,
+        );
+        invoke_signed(
+            &ix,
+            &[
+                accounts.metadata_program.clone(),
+                accounts.metadata_account.clone(),
+                accounts.central_state.clone(),
+                accounts.collection_mint.clone(),
+                accounts.collection_metadata.clone(),
+                accounts.edition_account.clone(),
+            ],
+            &[seeds],
+        )?;
+
         let data = DataV2 {
             name,
             symbol: META_SYMBOL.to_string(),
