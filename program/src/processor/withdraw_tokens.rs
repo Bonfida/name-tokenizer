@@ -145,7 +145,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     )?;
 
     // Withdraw native SOL if any
-    let minimum_rent = Rent::get()?.minimum_balance(nft_record.borsh_len());
+    let minimum_rent = Rent::get()?.minimum_balance(accounts.nft_record.data_len());
     let lamports_to_withdraw = accounts
         .nft_record
         .lamports()
