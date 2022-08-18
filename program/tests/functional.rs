@@ -9,7 +9,7 @@ use {
             ROOT_DOMAIN_ACCOUNT,
         },
     },
-    solana_program::{hash::hashv, pubkey::Pubkey, system_program, sysvar},
+    solana_program::{hash::hashv, pubkey::Pubkey, system_instruction, system_program, sysvar},
     solana_program_test::{processor, ProgramTest},
     solana_sdk::{
         account::Account,
@@ -295,9 +295,17 @@ async fn test_offer() {
         .await
         .unwrap();
 
+    // Also send some SOL
+
+    let ix = system_instruction::transfer(&prg_test_ctx.payer.pubkey(), &nft_record, 10_000_000);
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap();
+
     ////
     // Withdraw sent tokens
     ////
+
     let ix = withdraw_tokens(
         withdraw_tokens::Accounts {
             nft: &alice_nft_ata,
