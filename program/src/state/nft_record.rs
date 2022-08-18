@@ -50,7 +50,7 @@ impl NftRecord {
 
     pub fn from_account_info(a: &AccountInfo, tag: Tag) -> Result<NftRecord, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
-        if data[0] != tag as u8 && data[0] != Tag::Uninitialized as u8 {
+        if data[0] != tag as u8 {
             return Err(OfferError::DataTypeMismatch.into());
         }
         let result = NftRecord::deserialize(&mut data)?;
