@@ -205,7 +205,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     // Verify mint
     let mint_info = Mint::unpack(&accounts.mint.data.borrow())?;
     if mint_info.supply != 0 {
-        msg!("Expected suply == 0 and received {}", mint_info.supply);
+        msg!("Expected supply == 0 and received {}", mint_info.supply);
         return Err(ProgramError::InvalidAccountData);
     }
 

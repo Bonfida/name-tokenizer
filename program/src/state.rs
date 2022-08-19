@@ -1,11 +1,8 @@
-use crate::error::OfferError;
 use {
     bonfida_utils::BorshSize,
     borsh::{BorshDeserialize, BorshSerialize},
     mpl_token_metadata::state::Creator,
-    solana_program::{
-        account_info::AccountInfo, program_error::ProgramError, pubkey, pubkey::Pubkey,
-    },
+    solana_program::{pubkey, pubkey::Pubkey},
 };
 
 mod central_state;
