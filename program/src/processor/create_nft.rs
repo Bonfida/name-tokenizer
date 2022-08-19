@@ -190,7 +190,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     let (metadata_key, _) = find_metadata_account(&mint);
     check_account_key(accounts.metadata_account, &metadata_key)?;
 
-    // Verifiy edition PDA
+    // Verify edition PDA
     let (collection_mint, _) =
         Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
     check_account_key(accounts.collection_mint, &collection_mint)?;
