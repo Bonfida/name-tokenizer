@@ -26,7 +26,7 @@ use {
         pubkey::Pubkey,
         system_program, sysvar,
     },
-    spl_associated_token_account::create_associated_token_account,
+    spl_associated_token_account::instruction::create_associated_token_account,
     spl_token::{
         instruction::{initialize_mint, mint_to},
         state::Mint,

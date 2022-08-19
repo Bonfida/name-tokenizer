@@ -15,7 +15,9 @@ use {
         account::Account,
         signer::{keypair::Keypair, Signer},
     },
-    spl_associated_token_account::{create_associated_token_account, get_associated_token_address},
+    spl_associated_token_account::{
+        get_associated_token_address, instruction::create_associated_token_account,
+    },
     spl_name_service::state::{get_seeds_and_key, HASH_PREFIX},
 };
 
