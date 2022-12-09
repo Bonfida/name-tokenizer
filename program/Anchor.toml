@@ -1,0 +1,14 @@
+anchor_version = "0.25.0"
+
+
+[workspace]
+members = ["./"]
+
+
+[provider]
+cluster = "mainnet"
+wallet = "~/.config/solana/id.json"
+
+
+[programs.mainnet]
+name-tokenizer = "nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk"
