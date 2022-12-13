@@ -173,6 +173,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         accounts.fee_payer.key,
         &crate::central_state::KEY,
         &collection_mint,
+        &spl_token::ID,
     );
     invoke(
         &ix,

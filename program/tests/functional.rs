@@ -171,11 +171,17 @@ async fn test_offer() {
     // Create Alice and Bob ATAs
     ////
 
-    let ix = create_associated_token_account(&alice.pubkey(), &alice.pubkey(), &nft_mint);
+    let ix = create_associated_token_account(
+        &alice.pubkey(),
+        &alice.pubkey(),
+        &nft_mint,
+        &spl_token::ID,
+    );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
         .await
         .unwrap();
-    let ix = create_associated_token_account(&bob.pubkey(), &bob.pubkey(), &nft_mint);
+    let ix =
+        create_associated_token_account(&bob.pubkey(), &bob.pubkey(), &nft_mint, &spl_token::ID);
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
         .await
         .unwrap();
@@ -268,18 +274,31 @@ async fn test_offer() {
     let usdc_ata_alice = get_associated_token_address(&alice.pubkey(), &usdc_mint);
     let usdc_ata_bob = get_associated_token_address(&bob.pubkey(), &usdc_mint);
 
-    let ix = create_associated_token_account(&prg_test_ctx.payer.pubkey(), &nft_record, &usdc_mint);
+    let ix = create_associated_token_account(
+        &prg_test_ctx.payer.pubkey(),
+        &nft_record,
+        &usdc_mint,
+        &spl_token::ID,
+    );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
         .await
         .unwrap();
 
-    let ix =
-        create_associated_token_account(&prg_test_ctx.payer.pubkey(), &alice.pubkey(), &usdc_mint);
+    let ix = create_associated_token_account(
+        &prg_test_ctx.payer.pubkey(),
+        &alice.pubkey(),
+        &usdc_mint,
+        &spl_token::ID,
+    );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
         .await
         .unwrap();
-    let ix =
-        create_associated_token_account(&prg_test_ctx.payer.pubkey(), &bob.pubkey(), &usdc_mint);
+    let ix = create_associated_token_account(
+        &prg_test_ctx.payer.pubkey(),
+        &bob.pubkey(),
+        &usdc_mint,
+        &spl_token::ID,
+    );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
         .await
         .unwrap();
