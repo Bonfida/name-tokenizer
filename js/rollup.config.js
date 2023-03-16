@@ -4,9 +4,12 @@ import { terser } from "rollup-plugin-terser";
 
 export default {
   input: "src/index.ts",
-  output: {
-    dir: "dist",
-    format: "cjs",
-  },
+  output: [
+    {
+      file: "dist/index.mjs",
+      format: "esm",
+    },
+    { file: "dist/index.cjs", format: "cjs" },
+  ],
   plugins: [typescript(), commonjs(), terser()],
 };
