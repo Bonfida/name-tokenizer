@@ -17,12 +17,34 @@ import {
   getAssociatedTokenAddress,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import {
-  Metadata,
-  MetadataProgram,
-  MasterEdition,
-} from "@metaplex-foundation/mpl-token-metadata";
+
 import { NAME_PROGRAM_ID } from "@bonfida/spl-name-service";
+
+const METADATA_ID = new PublicKey(
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+);
+
+const PREFIX = "metadata";
+const EDITION = "edition";
+
+export const getMetadataPda = (mint: PublicKey) => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(PREFIX), METADATA_ID.toBuffer(), mint.toBuffer()],
+    METADATA_ID
+  )[0];
+};
+
+export const getMasterEditionPda = (mint: PublicKey) => {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from(PREFIX),
+      METADATA_ID.toBuffer(),
+      mint.toBuffer(),
+      Buffer.from(EDITION),
+    ],
+    METADATA_ID
+  )[0];
+};
 
 /**
  * Mainnet program ID
@@ -92,8 +114,8 @@ export const createCollection = async (
     [COLLECTION_PREFIX, programId.toBuffer()],
     programId
   );
-  const collectionMetadata = await Metadata.getPDA(collectionMint);
-  const editionAccount = await MasterEdition.getPDA(collectionMint);
+  const collectionMetadata = getMetadataPda(collectionMint);
+  const editionAccount = getMasterEditionPda(collectionMint);
   const centralStateAta = await getAssociatedTokenAddress(
     collectionMint,
     centralKey,
@@ -109,7 +131,7 @@ export const createCollection = async (
     centralStateAta,
     feePayer,
     TOKEN_PROGRAM_ID,
-    MetadataProgram.PUBKEY,
+    METADATA_ID,
     SystemProgram.programId,
     NAME_PROGRAM_ID,
     ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -150,14 +172,17 @@ export const createNft = async (
   const [nftRecord] = await NftRecord.findKey(nameAccount, programId);
   const nftDestination = await getAssociatedTokenAddress(mint, nameOwner);
 
-  const metadataAccount = await Metadata.getPDA(mint);
+  const metadataAccount = getMetadataPda(mint);
 
   const [collectionMint] = await PublicKey.findProgramAddress(
     [COLLECTION_PREFIX, programId.toBuffer()],
     programId
   );
-  const collectionMetadata = await Metadata.getPDA(collectionMint);
-  const editionAccount = await MasterEdition.getPDA(collectionMint);
+  const [collectionMetadata] = PublicKey.findProgramAddressSync(
+    [Buffer.from(PREFIX), METADATA_ID.toBuffer(), collectionMint.toBuffer()],
+    METADATA_ID
+  );
+  const editionAccount = getMasterEditionPda(collectionMint);
 
   const ix = new createNftInstruction({ name, uri }).getInstruction(
     programId,
@@ -173,7 +198,7 @@ export const createNft = async (
     centralKey,
     feePayer,
     TOKEN_PROGRAM_ID,
-    MetadataProgram.PUBKEY,
+    METADATA_ID,
     SystemProgram.programId,
     NAME_PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
