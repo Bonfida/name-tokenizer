@@ -17,7 +17,7 @@ use {
     borsh::{BorshDeserialize, BorshSerialize},
     mpl_token_metadata::{
         instruction::{
-            create_metadata_accounts_v2, set_and_verify_collection, unverify_collection,
+            create_metadata_accounts_v3, set_and_verify_collection, unverify_collection,
             update_metadata_accounts_v2,
         },
         pda::{find_master_edition_account, find_metadata_account},
@@ -275,7 +275,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     };
     if accounts.metadata_account.data_is_empty() {
         msg!("+ Creating metadata");
-        let ix = create_metadata_accounts_v2(
+        let ix = create_metadata_accounts_v3(
             mpl_token_metadata::ID,
             *accounts.metadata_account.key,
             mint,
@@ -291,6 +291,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             true,
             None,
             None,
+            None
         );
         invoke_signed(
             &ix,

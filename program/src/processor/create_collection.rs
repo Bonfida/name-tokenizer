@@ -12,7 +12,7 @@ use {
     },
     borsh::{BorshDeserialize, BorshSerialize},
     mpl_token_metadata::{
-        instruction::{create_master_edition_v3, create_metadata_accounts_v2},
+        instruction::{create_master_edition_v3, create_metadata_accounts_v3},
         pda::{find_master_edition_account, find_metadata_account},
         state::Creator,
     },
@@ -220,7 +220,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         verified: true,
         share: 100,
     };
-    let ix = create_metadata_accounts_v2(
+    let ix = create_metadata_accounts_v3(
         mpl_token_metadata::ID,
         *accounts.metadata_account.key,
         collection_mint,
@@ -236,6 +236,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         true,
         None,
         None,
+        None
     );
 
     invoke_signed(
