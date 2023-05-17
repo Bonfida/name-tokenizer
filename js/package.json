@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/name-tokenizer",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -28,7 +28,7 @@
     "prebuild": "rm -rf dist",
     "build": "rollup -c",
     "build:rm": "rollup -c && rm -rf node_modules",
-    "prepublish": "rm -rf dist && tsc",
+    "prepublish": "rm -rf dist && rollup -c",
     "lint": "yarn pretty && eslint .",
     "lint:fix": "yarn pretty:fix && eslint . --fix",
     "pretty": "prettier --check 'src/*.[jt]s'",
