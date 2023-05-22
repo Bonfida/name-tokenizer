@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NAME_TOKENIZER_ID } from "./bindings";
+import { MINT_PREFIX } from "./state";
 
 /**
  * This function can be used to retrieve the NFTs of an owner
@@ -118,4 +119,21 @@ export const getActiveRecords = async (connection: Connection) => {
   });
 
   return result;
+};
+
+export const getMint = (domain: PublicKey) => {
+  const [mint] = PublicKey.findProgramAddressSync(
+    [MINT_PREFIX, domain.toBuffer()],
+    NAME_TOKENIZER_ID
+  );
+  return mint;
+};
+
+export const isTokenized = async (
+  connection: Connection,
+  domain: PublicKey
+) => {
+  const mint = getMint(domain);
+  const supply = await connection.getTokenSupply(mint);
+  return supply.value.uiAmount === 1;
 };
