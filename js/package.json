@@ -1,6 +1,6 @@
 {
   "name": "@bonfida/name-tokenizer",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -68,7 +68,8 @@
     "@solana/spl-token": "^0.3.7",
     "bn.js": "^5.2.0",
     "borsh": "^0.6.0",
-    "bs58": "4.0.1"
+    "bs58": "4.0.1",
+    "buffer": "^6.0.3"
   },
   "peerDependencies": {
     "@solana/web3.js": "^1.73.2"
