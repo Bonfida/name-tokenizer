@@ -1,6 +1,7 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NAME_TOKENIZER_ID } from "./bindings";
 import { MINT_PREFIX } from "./state";
+import { Buffer } from "buffer";
 
 /**
  * This function can be used to retrieve the NFTs of an owner

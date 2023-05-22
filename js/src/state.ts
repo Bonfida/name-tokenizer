@@ -1,5 +1,6 @@
 import { deserialize, Schema } from "borsh";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { Buffer } from "buffer";
 
 export const MINT_PREFIX = Buffer.from("tokenized_name");
 export const COLLECTION_PREFIX = Buffer.from("collection");

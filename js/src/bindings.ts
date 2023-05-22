@@ -17,7 +17,7 @@ import {
   getAssociatedTokenAddress,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-
+import { Buffer } from "buffer";
 import { NAME_PROGRAM_ID } from "@bonfida/spl-name-service";
 
 const METADATA_ID = new PublicKey(
