@@ -2,6 +2,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { NAME_TOKENIZER_ID } from "./bindings";
 import { MINT_PREFIX } from "./state";
 import { Buffer } from "buffer";
+import { MintLayout } from "@solana/spl-token";
 
 /**
  * This function can be used to retrieve the NFTs of an owner
@@ -135,6 +136,8 @@ export const isTokenized = async (
   domain: PublicKey
 ) => {
   const mint = getMint(domain);
-  const supply = await connection.getTokenSupply(mint);
-  return supply.value.uiAmount === 1;
+  const info = await connection.getAccountInfo(mint);
+  if (!info) return false;
+  const decoded = MintLayout.decode(info.data);
+  return decoded.supply.toString() === "1";
 };
