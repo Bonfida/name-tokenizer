@@ -12,26 +12,32 @@ devnet = []
 
 
 [dependencies]
-solana-program = "1.14.10"
+solana-program = "<1.16.0"
 num_enum = "0.5.4"
 borsh = "0.9.3"
-thiserror = "1.0.24"
+thiserror = "1.0.44"
 num-traits = "0.2"
 num-derive = "0.3"
 enumflags2 = "0.7.1"
-spl-token = {version="3.5.0", features= ["no-entrypoint"]}
+spl-token = {version="3.2.0", features= ["no-entrypoint"]}
 bonfida-utils = "0.3.2"
-spl-associated-token-account = {version = "1.1.2", features = ["no-entrypoint"]}
-spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"]}
-mpl-token-metadata = {git = "https://github.com/metaplex-foundation/metaplex-program-library", features = ["no-entrypoint"]}
+spl-associated-token-account = {version = "1.0.3", features = ["no-entrypoint"]}
+spl-name-service = { version = "0.2.0", features = ["no-entrypoint"] }
+mpl-token-metadata = { git = "https://github.com/metaplex-foundation/metaplex-program-library", features = ["no-entrypoint"] }
+
+
+# We are forced to use solana version 1.14.18, which caps the rust version
+# https://github.com/solana-labs/solana/issues/31960
+toml_datetime = "<=0.6.1"
+winnow = "<=0.4.1"
 
 
 [dev-dependencies]
 hexdump = "0.1.0"
-solana-sdk = "1.14.10"
+solana-sdk = "<1.16.0"
 rand = "0.8.4"
 arrayref = "0.3.6"
-solana-program-test = "1.14.10"
+solana-program-test = "<1.16.0"
 tokio = {version="1.6", features = ["macros"]}
 
 
