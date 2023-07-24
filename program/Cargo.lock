@@ -426,7 +426,7 @@ dependencies = [
  "proc-macro2 1.0.66",
  "quote 1.0.32",
  "solana-program",
- "spl-name-service 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "spl-name-service",
  "syn 1.0.109",
 ]
 
@@ -2201,7 +2201,7 @@ dependencies = [
  "solana-program-test",
  "solana-sdk",
  "spl-associated-token-account",
- "spl-name-service 0.2.0 (git+https://github.com/solana-labs/solana-program-library)",
+ "spl-name-service",
  "spl-token",
  "thiserror",
  "tokio",
@@ -4553,18 +4553,6 @@ name = "spl-name-service"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c2920a0762e3fdbd02a24469787d9217f658776502265a9b99903557be28adf"
-dependencies = [
- "borsh",
- "num-derive",
- "num-traits",
- "solana-program",
- "thiserror",
-]
-
-[[package]]
-name = "spl-name-service"
-version = "0.2.0"
-source = "git+https://github.com/solana-labs/solana-program-library#cb107edc975cb331d5b85d770ccee62ebd2e0936"
 dependencies = [
  "borsh",
  "num-derive",
