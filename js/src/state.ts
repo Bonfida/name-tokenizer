@@ -6,7 +6,7 @@ export const MINT_PREFIX = Buffer.from("tokenized_name");
 export const COLLECTION_PREFIX = Buffer.from("collection");
 
 export const METADATA_SIGNER = new PublicKey(
-  "ARy9ZzW9qFCb8c8Lxi4NCph1TRNabUaMH5tj4e5pqwHb"
+  "Es33LnWSTZ9GbW6yBaRkSLUaFibVd7iS54e4AvBg76LX"
 );
 
 export enum Tag {
