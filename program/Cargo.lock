@@ -2137,12 +2137,12 @@ dependencies = [
 [[package]]
 name = "mpl-token-metadata"
 version = "1.11.0"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library#b3cb4dc97ad8c894530a14a9d13c354973a81b38"
+source = "git+https://github.com/metaplex-foundation/metaplex-program-library?rev=b3cb4dc9#b3cb4dc97ad8c894530a14a9d13c354973a81b38"
 dependencies = [
  "arrayref",
  "borsh",
  "mpl-token-auth-rules",
- "mpl-token-metadata-context-derive 0.2.1 (git+https://github.com/metaplex-foundation/metaplex-program-library)",
+ "mpl-token-metadata-context-derive 0.2.1 (git+https://github.com/metaplex-foundation/metaplex-program-library?rev=b3cb4dc9)",
  "mpl-utils",
  "num-derive",
  "num-traits",
@@ -2166,7 +2166,7 @@ dependencies = [
 [[package]]
 name = "mpl-token-metadata-context-derive"
 version = "0.2.1"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library#b3cb4dc97ad8c894530a14a9d13c354973a81b38"
+source = "git+https://github.com/metaplex-foundation/metaplex-program-library?rev=b3cb4dc9#b3cb4dc97ad8c894530a14a9d13c354973a81b38"
 dependencies = [
  "quote 1.0.32",
  "syn 1.0.109",
@@ -2175,7 +2175,7 @@ dependencies = [
 [[package]]
 name = "mpl-utils"
 version = "0.2.0"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library#b3cb4dc97ad8c894530a14a9d13c354973a81b38"
+source = "git+https://github.com/metaplex-foundation/metaplex-program-library?rev=b3cb4dc9#b3cb4dc97ad8c894530a14a9d13c354973a81b38"
 dependencies = [
  "arrayref",
  "borsh",
