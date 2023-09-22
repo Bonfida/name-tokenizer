@@ -1,5 +1,6 @@
 pub use crate::processor::{
-    create_collection, create_mint, create_nft, edit_data, redeem_nft, withdraw_tokens,
+    create_collection, create_mint, create_nft, edit_data, redeem_nft, unverify_nft,
+    withdraw_tokens,
 };
 use {
     bonfida_utils::InstructionsAccount,
@@ -97,6 +98,21 @@ pub enum ProgramInstruction {
     /// | 4     | ❌        | ❌      | The SPL token program account        |
     /// | 5     | ❌        | ❌      | The SPL name service program account |
     EditData,
+    /// Unverify an NFT
+    ///
+    /// | Index | Writable | Signer | Description                  |
+    /// | -------------------------------------------------------- |
+    /// | 0     | ✅        | ❌      | The metadata account         |
+    /// | 1     | ❌        | ❌      | Master edition account       |
+    /// | 2     | ❌        | ❌      | Collection                   |
+    /// | 3     | ❌        | ❌      | Mint of the collection       |
+    /// | 4     | ✅        | ❌      | The central state account    |
+    /// | 5     | ✅        | ✅      | The fee payer account        |
+    /// | 6     | ❌        | ❌      | The metadata program account |
+    /// | 7     | ❌        | ❌      | The system program account   |
+    /// | 8     | ❌        | ❌      | Rent sysvar account          |
+    /// | 9     | ❌        | ✅      | The metadata signer          |
+    UnverifyNft,
 }
 #[allow(missing_docs)]
 pub fn create_mint(
@@ -140,4 +156,12 @@ pub fn create_collection(
 #[allow(missing_docs)]
 pub fn edit_data(accounts: edit_data::Accounts<Pubkey>, params: edit_data::Params) -> Instruction {
     accounts.get_instruction(crate::ID, ProgramInstruction::EditData as u8, params)
+}
+
+#[allow(missing_docs)]
+pub fn unverify_nft(
+    accounts: unverify_nft::Accounts<Pubkey>,
+    params: unverify_nft::Params,
+) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::UnverifyNft as u8, params)
 }

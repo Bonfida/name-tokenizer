@@ -14,6 +14,7 @@ pub mod create_mint;
 pub mod create_nft;
 pub mod edit_data;
 pub mod redeem_nft;
+pub mod unverify_nft;
 pub mod withdraw_tokens;
 
 pub struct Processor {}
@@ -58,6 +59,12 @@ impl Processor {
                 let params = edit_data::Params::try_from_slice(instruction_data)
                     .map_err(|_| ProgramError::InvalidInstructionData)?;
                 edit_data::process(program_id, accounts, params)?
+            }
+            ProgramInstruction::UnverifyNft => {
+                msg!("Instruction: Unverify NFT");
+                let params = unverify_nft::Params::try_from_slice(instruction_data)
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                unverify_nft::process(program_id, accounts, params)?
             }
         }
 
