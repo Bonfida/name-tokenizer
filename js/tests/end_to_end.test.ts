@@ -5,13 +5,14 @@ import {
   LAMPORTS_PER_SOL,
   PublicKey,
 } from "@solana/web3.js";
-import { signAndSendTransactionInstructions, sleep } from "./utils";
+
 import {
-  Token,
-  TOKEN_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddressSync,
+  createTransferInstruction,
+  MintLayout,
 } from "@solana/spl-token";
-import { TokenMint } from "./utils";
+import { TokenMint, signAndSendInstructions } from "@bonfida/utils";
 import {
   createNameRegistry,
   getNameAccountKey,
@@ -22,7 +23,6 @@ import {
   createMint,
   createNft,
   redeemNft,
-  createCollection,
   withdrawTokens,
   NAME_TOKENIZER_ID_DEVNET,
 } from "../src/bindings";
@@ -94,42 +94,29 @@ test("End to end test", async () => {
    * Create token ATA for Alice and Bob
    */
 
-  const aliceTokenAtaKey = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    token.token.publicKey,
+  const aliceTokenAtaKey = getAssociatedTokenAddressSync(
+    token.token,
     alice.publicKey
   );
-  const bobTokenAtaKey = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    token.token.publicKey,
+  const bobTokenAtaKey = getAssociatedTokenAddressSync(
+    token.token,
     bob.publicKey
   );
   let ix = [
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      token.token.publicKey,
+    createAssociatedTokenAccountInstruction(
+      feePayer.publicKey,
       aliceTokenAtaKey,
       alice.publicKey,
-      feePayer.publicKey
+      token.token
     ),
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      token.token.publicKey,
+    createAssociatedTokenAccountInstruction(
+      feePayer.publicKey,
       bobTokenAtaKey,
       bob.publicKey,
-      feePayer.publicKey
+      token.token
     ),
   ];
-  let tx = await signAndSendTransactionInstructions(
-    connection,
-    [],
-    feePayer,
-    ix
-  );
+  let tx = await signAndSendInstructions(connection, [], feePayer, ix);
 
   /**
    * Airdrop Alice
@@ -156,7 +143,7 @@ test("End to end test", async () => {
       lamports
     ),
   ];
-  tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  tx = await signAndSendInstructions(connection, [], feePayer, ix);
   console.log(`Create domain tx ${tx}`);
 
   /**
@@ -167,7 +154,7 @@ test("End to end test", async () => {
     programId
   );
   ix = await createMint(nameKey, feePayer.publicKey, programId);
-  tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  tx = await signAndSendInstructions(connection, [], feePayer, ix);
 
   console.log(`Create mint ${tx}`);
 
@@ -176,58 +163,50 @@ test("End to end test", async () => {
    */
 
   // ix = await createCollection(feePayer.publicKey, programId);
-  // tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  // tx = await signAndSendInstructions(connection, [], feePayer, ix);
 
   // console.log(`Create collection ${tx}`);
 
   /**
    * Create ATAs for Alice and Bob
    */
-  const aliceNftAtaKey = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
+  const aliceNftAtaKey = await getAssociatedTokenAddressSync(
     mintKey,
     alice.publicKey
   );
-  const bobNftAtaKey = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
+  const bobNftAtaKey = await getAssociatedTokenAddressSync(
     mintKey,
     bob.publicKey
   );
 
   ix = [
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      mintKey,
+    createAssociatedTokenAccountInstruction(
+      feePayer.publicKey,
       aliceNftAtaKey,
       alice.publicKey,
-      feePayer.publicKey
+      mintKey
     ),
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      mintKey,
+    createAssociatedTokenAccountInstruction(
+      feePayer.publicKey,
       bobNftAtaKey,
       bob.publicKey,
-      feePayer.publicKey
+      mintKey
     ),
   ];
-  tx = await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  tx = await signAndSendInstructions(connection, [], feePayer, ix);
 
   console.log(`Create Alice and Bob ATAs`);
 
   /**
    * Verify state
    */
-  const mintToken = new Token(connection, mintKey, TOKEN_PROGRAM_ID, feePayer);
-  let mintInfo = await mintToken.getMintInfo();
+  let info = await connection.getAccountInfo(mintKey);
+  let mintInfo = MintLayout.decode(info?.data!);
   expect(mintInfo.decimals).toBe(0);
   expect(mintInfo.freezeAuthority?.toBase58()).toBe(centralKey.toBase58());
   expect(mintInfo.isInitialized).toBe(true);
   expect(mintInfo.mintAuthority?.toBase58()).toBe(centralKey.toBase58());
-  expect(mintInfo.supply.toNumber()).toBe(0);
+  expect(Number(mintInfo.supply)).toBe(0);
 
   /**
    * Create NFT
@@ -240,20 +219,16 @@ test("End to end test", async () => {
     feePayer.publicKey,
     programId
   );
-  tx = await signAndSendTransactionInstructions(
-    connection,
-    [alice],
-    feePayer,
-    ix
-  );
+  tx = await signAndSendInstructions(connection, [alice], feePayer, ix);
 
   console.log(`Create NFT tx ${tx}`);
 
   /**
    * Verify state
    */
-  mintInfo = await mintToken.getMintInfo();
-  expect(mintInfo.supply.toNumber()).toBe(1);
+  info = await connection.getAccountInfo(mintKey);
+  mintInfo = MintLayout.decode(info?.data!);
+  expect(Number(mintInfo.supply)).toBe(1);
 
   const [nftRecordKey, nftRecordNonce] = await NftRecord.findKey(
     nameKey,
@@ -272,24 +247,20 @@ test("End to end test", async () => {
   /**
    * Send funds to the tokenized domain (tokens + SOL)
    */
-  const nftRecordTokenAtaKey = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    token.token.publicKey,
+  const nftRecordTokenAtaKey = getAssociatedTokenAddressSync(
+    token.token,
     nftRecordKey,
     true
   );
   ix = [
-    Token.createAssociatedTokenAccountInstruction(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      token.token.publicKey,
+    createAssociatedTokenAccountInstruction(
+      feePayer.publicKey,
       nftRecordTokenAtaKey,
       nftRecordKey,
-      feePayer.publicKey
+      token.token
     ),
   ];
-  await signAndSendTransactionInstructions(connection, [], feePayer, ix);
+  await signAndSendInstructions(connection, [], feePayer, ix);
   await token.mintInto(nftRecordTokenAtaKey, mintAmount);
   await connection.requestAirdrop(nftRecordKey, LAMPORTS_PER_SOL / 2);
 
@@ -301,17 +272,12 @@ test("End to end test", async () => {
    */
   ix = await withdrawTokens(
     mintKey,
-    token.token.publicKey,
+    token.token,
     alice.publicKey,
     nftRecordKey,
     programId
   );
-  tx = await signAndSendTransactionInstructions(
-    connection,
-    [alice],
-    feePayer,
-    ix
-  );
+  tx = await signAndSendInstructions(connection, [alice], feePayer, ix);
   console.log(`Alice withdrew tokens ${tx}`);
 
   /**
@@ -331,21 +297,9 @@ test("End to end test", async () => {
    * Transfer NFT to new wallet
    */
   ix = [
-    Token.createTransferInstruction(
-      TOKEN_PROGRAM_ID,
-      aliceNftAtaKey,
-      bobNftAtaKey,
-      alice.publicKey,
-      [],
-      1
-    ),
+    createTransferInstruction(aliceNftAtaKey, bobNftAtaKey, alice.publicKey, 1),
   ];
-  tx = await signAndSendTransactionInstructions(
-    connection,
-    [alice],
-    feePayer,
-    ix
-  );
+  tx = await signAndSendInstructions(connection, [alice], feePayer, ix);
   console.log(`Transfer NFT from Alice to Bob`);
 
   /**
@@ -362,17 +316,12 @@ test("End to end test", async () => {
    */
   ix = await withdrawTokens(
     mintKey,
-    token.token.publicKey,
+    token.token,
     bob.publicKey,
     nftRecordKey,
     programId
   );
-  tx = await signAndSendTransactionInstructions(
-    connection,
-    [bob],
-    feePayer,
-    ix
-  );
+  tx = await signAndSendInstructions(connection, [bob], feePayer, ix);
   console.log(`Bob withdrew tokens ${tx}`);
 
   /**
@@ -399,19 +348,15 @@ test("End to end test", async () => {
    * Redeem NFT
    */
   ix = await redeemNft(nameKey, bob.publicKey, programId);
-  tx = await signAndSendTransactionInstructions(
-    connection,
-    [bob],
-    feePayer,
-    ix
-  );
+  tx = await signAndSendInstructions(connection, [bob], feePayer, ix);
   console.log(`Bob redeemed NFT ${tx}`);
 
   /**
    * Verify state
    */
-  mintInfo = await mintToken.getMintInfo();
-  expect(mintInfo.supply.toNumber()).toBe(0);
+  info = await connection.getAccountInfo(mintKey);
+  mintInfo = MintLayout.decode(info?.data!);
+  expect(Number(mintInfo.supply)).toBe(0);
 
   nftRecord = await NftRecord.retrieve(connection, nftRecordKey);
   expect(nftRecord.nameAccount.toBase58()).toBe(nameKey.toBase58());
@@ -425,17 +370,12 @@ test("End to end test", async () => {
    */
   ix = await withdrawTokens(
     mintKey,
-    token.token.publicKey,
+    token.token,
     bob.publicKey,
     nftRecordKey,
     programId
   );
-  tx = await signAndSendTransactionInstructions(
-    connection,
-    [bob],
-    feePayer,
-    ix
-  );
+  tx = await signAndSendInstructions(connection, [bob], feePayer, ix);
   console.log(`Bob withdrew tokens ${tx}`);
 
   /**
@@ -460,22 +400,19 @@ test("End to end test", async () => {
     feePayer.publicKey,
     programId
   );
-  tx = await signAndSendTransactionInstructions(
-    connection,
-    [bob],
-    feePayer,
-    ix
-  );
+  tx = await signAndSendInstructions(connection, [bob], feePayer, ix);
 
   /**
    * Verify state
    */
-  mintInfo = await mintToken.getMintInfo();
+
+  info = await connection.getAccountInfo(mintKey);
+  mintInfo = MintLayout.decode(info?.data!);
   expect(mintInfo.decimals).toBe(0);
   expect(mintInfo.freezeAuthority?.toBase58()).toBe(centralKey.toBase58());
   expect(mintInfo.isInitialized).toBe(true);
   expect(mintInfo.mintAuthority?.toBase58()).toBe(centralKey.toBase58());
-  expect(mintInfo.supply.toNumber()).toBe(1);
+  expect(Number(mintInfo.supply)).toBe(1);
 
   nftRecord = await NftRecord.retrieve(connection, nftRecordKey);
   expect(nftRecord.nameAccount.toBase58()).toBe(nameKey.toBase58());
