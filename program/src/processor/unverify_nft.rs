@@ -118,7 +118,6 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], _params: Params) -
 
     let seeds: &[&[u8]] = &[&program_id.to_bytes(), &[crate::central_state::NONCE]];
 
-    // Unverify collection first
     let ix = unverify_collection(
         mpl_token_metadata::ID,
         *accounts.metadata_account.key,
