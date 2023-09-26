@@ -333,6 +333,11 @@
     buffer "^6.0.3"
     tweetnacl "^1.0.3"
 
+"@bonfida/utils@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@bonfida/utils/-/utils-0.0.7.tgz#0c88e9ec4d207a9a7a98fc85eb11c3f76296c5d5"
+  integrity sha512-h85/sXUOUzQRbQ42Z977i6V+D+RIySR5LmsDwLervnOLkpwYF2VZtE+CkfRtM+mU9awGSPIRF3POhY7RhXGrDg==
+
 "@coral-xyz/anchor@^0.26.0":
   version "0.26.0"
   resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.26.0.tgz#c8e4f7177e93441afd030f22d777d54d0194d7d1"

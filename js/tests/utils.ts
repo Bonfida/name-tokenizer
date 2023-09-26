@@ -10,7 +10,6 @@ import * as path from "path";
 import { readFileSync, writeSync, closeSync } from "fs";
 import { ChildProcess, spawn, execSync } from "child_process";
 import tmp from "tmp";
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 const programName = "name_tokenizer";
 
@@ -57,12 +56,9 @@ export function deployProgram(
     });
   }
   if (testBpf) {
-    execSync(
-      "cargo test-bpf --features no-lock-time no-mint-check no-bond-signer",
-      {
-        cwd: programDirectory,
-      }
-    );
+    execSync("cargo test-bpf --features devnet", {
+      cwd: programDirectory,
+    });
   }
 
   const bytes = readFileSync(keyfile, "utf-8");
@@ -100,57 +96,4 @@ export async function airdropPayer(connection: Connection, key: PublicKey) {
       continue;
     }
   }
-}
-
-export const signAndSendTransactionInstructions = async (
-  // sign and send transaction
-  connection: Connection,
-  signers: Array<Keypair> | undefined,
-  feePayer: Keypair,
-  txInstructions: Array<TransactionInstruction>
-): Promise<string> => {
-  const tx = new Transaction();
-  tx.feePayer = feePayer.publicKey;
-  signers = signers ? [...signers, feePayer] : [];
-  tx.add(...txInstructions);
-  const signature = await connection.sendTransaction(tx, signers, {
-    skipPreflight: false,
-  });
-  await connection.confirmTransaction(signature, "confirmed");
-  return signature;
-};
-
-export class TokenMint {
-  constructor(public token: Token, public signer: Keypair) {}
-
-  static async init(
-    connection: Connection,
-    feePayer: Keypair,
-    mintAuthority: PublicKey | null = null
-  ) {
-    let signer = new Keypair();
-    let token = await Token.createMint(
-      connection,
-      feePayer,
-      mintAuthority || signer.publicKey,
-      null,
-      6,
-      TOKEN_PROGRAM_ID
-    );
-    return new TokenMint(token, signer);
-  }
-
-  async getAssociatedTokenAccount(wallet: PublicKey): Promise<PublicKey> {
-    let acc = await this.token.getOrCreateAssociatedAccountInfo(wallet);
-    return acc.address;
-  }
-
-  async mintInto(tokenAccount: PublicKey, amount: number): Promise<void> {
-    return this.token.mintTo(tokenAccount, this.signer, [], amount);
-  }
-}
-
-export async function sleep(ms: number) {
-  console.log("Sleeping for ", ms, " ms");
-  return await new Promise((resolve) => setTimeout(resolve, ms));
 }

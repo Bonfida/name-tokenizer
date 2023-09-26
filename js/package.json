@@ -61,7 +61,8 @@
     "ts-node": "^9.1.1",
     "tslib": "^2.2.0",
     "typedoc": "^0.22.3",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.3",
+    "@bonfida/utils": "^0.0.7"
   },
   "dependencies": {
     "@bonfida/spl-name-service": "^0.2.8",
