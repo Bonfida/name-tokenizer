@@ -12,15 +12,15 @@ devnet = []
 
 
 [dependencies]
-solana-program = "<1.16.0"
+solana-program = "1.16.16"
 num_enum = "0.5.4"
-borsh = "0.9.3"
+borsh = "0.10.3"
 thiserror = "1.0.44"
 num-traits = "0.2"
 num-derive = "0.3"
 enumflags2 = "0.7.1"
 spl-token = {version="3.2.0", features= ["no-entrypoint"]}
-bonfida-utils = "0.3.2"
+bonfida-utils = {git = "https://github.com/Bonfida/bonfida-utils", branch="1.16"}
 spl-associated-token-account = {version = "1.0.3", features = ["no-entrypoint"]}
 spl-name-service = { version = "0.2.0", features = ["no-entrypoint"] }
 mpl-token-metadata = { git = "https://github.com/metaplex-foundation/mpl-token-metadata.git", features = ["no-entrypoint"], package="token_metadata" }
