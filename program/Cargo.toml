@@ -23,7 +23,8 @@ spl-token = {version="3.2.0", features= ["no-entrypoint"]}
 bonfida-utils = {git = "https://github.com/Bonfida/bonfida-utils", branch="1.16"}
 spl-associated-token-account = {version = "1.0.3", features = ["no-entrypoint"]}
 spl-name-service = { version = "0.2.0", features = ["no-entrypoint"] }
-mpl-token-metadata = { git = "https://github.com/metaplex-foundation/mpl-token-metadata.git", features = ["no-entrypoint"], package="token_metadata" }
+mpl-token-metadata = { version = "2.0.0-beta.1", features = ["no-entrypoint"] }
+
 
 
 # We are forced to use solana version 1.14.18, which caps the rust version

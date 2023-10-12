@@ -512,7 +512,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4114279215a005bc675e386011e594e1d9b800918cea18fcadadcce864a2046b"
 dependencies = [
  "borsh-derive 0.10.3",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
 ]
 
 [[package]]
@@ -2074,20 +2074,40 @@ dependencies = [
 
 [[package]]
 name = "mpl-token-auth-rules"
-version = "1.4.3-beta.1"
+version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81a34d740606a10a9dac7507d0c9025d72e0ce311c68ae85b6634982cf69a9c6"
+checksum = "66b1ec5ee0570f688cc84ff4624c5c50732f1a2bfc789f6b34af5b563428d971"
 dependencies = [
- "borsh 0.9.3",
+ "borsh 0.10.3",
  "bytemuck",
  "mpl-token-metadata-context-derive 0.2.1",
  "num-derive 0.3.3",
  "num-traits",
  "rmp-serde",
  "serde",
- "shank 0.0.11",
+ "shank",
  "solana-program",
  "solana-zk-token-sdk",
+ "thiserror",
+]
+
+[[package]]
+name = "mpl-token-metadata"
+version = "2.0.0-beta.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3545bd5fe73416f6514cd93899612e0e138619e72df8bc7d19906a12688c69e"
+dependencies = [
+ "arrayref",
+ "borsh 0.10.3",
+ "mpl-token-auth-rules",
+ "mpl-token-metadata-context-derive 0.3.0",
+ "mpl-utils",
+ "num-derive 0.3.3",
+ "num-traits",
+ "shank",
+ "solana-program",
+ "spl-associated-token-account",
+ "spl-token 4.0.0",
  "thiserror",
 ]
 
@@ -2104,7 +2124,8 @@ dependencies = [
 [[package]]
 name = "mpl-token-metadata-context-derive"
 version = "0.3.0"
-source = "git+https://github.com/metaplex-foundation/mpl-token-metadata.git#58faae7409bf2e7c4351f72631a01b31e2fd43de"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5a739019e11d93661a64ef5fe108ab17c79b35961e944442ff6efdd460ad01a"
 dependencies = [
  "quote 1.0.33",
  "syn 1.0.109",
@@ -2130,6 +2151,7 @@ dependencies = [
  "borsh 0.10.3",
  "enumflags2",
  "hexdump",
+ "mpl-token-metadata",
  "num-derive 0.3.3",
  "num-traits",
  "num_enum 0.5.11",
@@ -2141,7 +2163,6 @@ dependencies = [
  "spl-name-service 0.2.0",
  "spl-token 3.5.0",
  "thiserror",
- "token_metadata",
  "tokio 1.32.0",
  "toml_datetime",
  "winnow",
@@ -3322,16 +3343,7 @@ version = "0.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b63e565b5e95ad88ab38f312e89444c749360641c509ef2de0093b49f55974a5"
 dependencies = [
- "shank_macro 0.0.11",
-]
-
-[[package]]
-name = "shank"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bc647510fc0d94a936f7367a9e3e30edbefd410068747ce4d4084b19b5fdbab"
-dependencies = [
- "shank_macro 0.2.1",
+ "shank_macro",
 ]
 
 [[package]]
@@ -3342,20 +3354,7 @@ checksum = "63927d22a1e8b74bda98cc6e151fcdf178b7abb0dc6c4f81e0bbf5ffe2fc4ec8"
 dependencies = [
  "proc-macro2 1.0.66",
  "quote 1.0.33",
- "shank_macro_impl 0.0.11",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "shank_macro"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa9ec31d18dcca23f2270ccf69766a99156792da3aed050dc5713af0e778b4f2"
-dependencies = [
- "proc-macro2 1.0.66",
- "quote 1.0.33",
- "shank_macro_impl 0.2.1",
- "shank_render",
+ "shank_macro_impl",
  "syn 1.0.109",
 ]
 
@@ -3370,30 +3369,6 @@ dependencies = [
  "quote 1.0.33",
  "serde",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "shank_macro_impl"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccaeb1359cf545507b5d18a637cc5cf192c7dcc8c737dff466013ca2d9e792c7"
-dependencies = [
- "anyhow",
- "proc-macro2 1.0.66",
- "quote 1.0.33",
- "serde",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "shank_render"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e63f0b763c4c767dfb462a884d5f5b9b99fdd0a214c910d95792eb02a13b3d69"
-dependencies = [
- "proc-macro2 1.0.66",
- "quote 1.0.33",
- "shank_macro_impl 0.2.1",
 ]
 
 [[package]]
@@ -4488,25 +4463,6 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
-
-[[package]]
-name = "token_metadata"
-version = "1.13.3"
-source = "git+https://github.com/metaplex-foundation/mpl-token-metadata.git#58faae7409bf2e7c4351f72631a01b31e2fd43de"
-dependencies = [
- "arrayref",
- "borsh 0.9.3",
- "mpl-token-auth-rules",
- "mpl-token-metadata-context-derive 0.3.0",
- "mpl-utils",
- "num-derive 0.3.3",
- "num-traits",
- "shank 0.2.1",
- "solana-program",
- "spl-associated-token-account",
- "spl-token 3.5.0",
- "thiserror",
-]
 
 [[package]]
 name = "tokio"
