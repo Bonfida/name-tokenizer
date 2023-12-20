@@ -2,6 +2,9 @@
 name = "name-tokenizer"
 version = "0.1.0"
 edition = "2018"
+description = "A Solana program which enables the tokenization of a Solana Name Service into an NFT"
+license = "MIT"
+repository = "https://github.com/bonfida/name-tokenizer"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -23,7 +26,7 @@ spl-token = {version="3.2.0", features= ["no-entrypoint"]}
 bonfida-utils = "0.3.2"
 spl-associated-token-account = {version = "1.0.3", features = ["no-entrypoint"]}
 spl-name-service = { version = "0.2.0", features = ["no-entrypoint"] }
-mpl-token-metadata = { git = "https://github.com/metaplex-foundation/mpl-token-metadata.git", features = ["no-entrypoint"], package="token_metadata" }
+mpl-token-metadata = { version = "1.11.0", features = ["no-entrypoint"] }
 
 
 # We are forced to use solana version 1.14.18, which caps the rust version
