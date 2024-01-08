@@ -33,6 +33,7 @@ mpl-token-metadata = { version = "1.11.0", features = ["no-entrypoint"] }
 # https://github.com/solana-labs/solana/issues/31960
 toml_datetime = "<=0.6.1"
 winnow = "<=0.4.1"
+solana-security-txt = "1.1.1"
 
 
 [dev-dependencies]
