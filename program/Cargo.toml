@@ -24,7 +24,7 @@ bonfida-utils = "0.4.2"
 spl-associated-token-account = {version = "2.3.0", features = ["no-entrypoint"]}
 spl-name-service = { version = "0.3.0", features = ["no-entrypoint"] }
 mpl-token-metadata = { version = "4.0.0" }
-
+solana-security-txt = "1.1.1"
 ahash = "=0.8.6"
 
 

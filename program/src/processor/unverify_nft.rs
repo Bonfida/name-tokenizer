@@ -1,5 +1,10 @@
 //! Unverify an NFT
 
+use mpl_token_metadata::{
+    accounts::{MasterEdition, Metadata},
+    instructions::{UnverifyCollectionCpi, UnverifyCollectionCpiAccounts},
+};
+
 use crate::state::{COLLECTION_PREFIX, METADATA_SIGNER};
 
 use {
@@ -8,14 +13,9 @@ use {
         BorshSize, InstructionsAccount,
     },
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_token_metadata::{
-        instruction::unverify_collection,
-        pda::{find_master_edition_account, find_metadata_account},
-    },
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
-        program::invoke_signed,
         program_error::ProgramError,
         pubkey::Pubkey,
         system_program, sysvar,
@@ -109,36 +109,27 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], _params: Params) -
         Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
     check_account_key(accounts.collection_mint, &collection_mint)?;
 
-    let (edition_key, _) = find_master_edition_account(&collection_mint);
+    let (edition_key, _) = MasterEdition::find_pda(&collection_mint);
     check_account_key(accounts.edition_account, &edition_key)?;
 
     // Verify collection metadata PDA
-    let (collection_metadata, _) = find_metadata_account(&collection_mint);
+    let (collection_metadata, _) = Metadata::find_pda(&collection_mint);
     check_account_key(accounts.collection_metadata, &collection_metadata)?;
 
     let seeds: &[&[u8]] = &[&program_id.to_bytes(), &[crate::central_state::NONCE]];
 
-    let ix = unverify_collection(
-        mpl_token_metadata::ID,
-        *accounts.metadata_account.key,
-        crate::central_state::KEY,
-        collection_mint,
-        collection_metadata,
-        edition_key,
-        None,
-    );
-    invoke_signed(
-        &ix,
-        &[
-            accounts.metadata_program.clone(),
-            accounts.metadata_account.clone(),
-            accounts.central_state.clone(),
-            accounts.collection_mint.clone(),
-            accounts.collection_metadata.clone(),
-            accounts.edition_account.clone(),
-        ],
-        &[seeds],
-    )?;
+    UnverifyCollectionCpi::new(
+        accounts.metadata_program,
+        UnverifyCollectionCpiAccounts {
+            metadata: accounts.metadata_account,
+            collection_authority: accounts.central_state,
+            collection_mint: accounts.collection_mint,
+            collection: accounts.collection_metadata,
+            collection_master_edition_account: accounts.edition_account,
+            collection_authority_record: None,
+        },
+    )
+    .invoke_signed(&[seeds])?;
 
     Ok(())
 }
