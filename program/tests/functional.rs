@@ -1,8 +1,10 @@
 use {
-    borsh::BorshSerialize,
+    borsh::{BorshDeserialize, BorshSerialize},
     name_tokenizer::{
         entrypoint::process_instruction,
-        instruction::{create_collection, create_mint, create_nft, redeem_nft, withdraw_tokens},
+        instruction::{
+            create_collection, create_mint, create_nft, redeem_nft, unverify_nft, withdraw_tokens,
+        },
         state::{
             CentralState, NftRecord, COLLECTION_PREFIX, METADATA_SIGNER, MINT_PREFIX,
             ROOT_DOMAIN_ACCOUNT,
@@ -426,4 +428,46 @@ async fn test_offer() {
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
         .await
         .unwrap();
+
+    //////
+    // Unverify NFT
+    //////
+    let info = prg_test_ctx
+        .banks_client
+        .get_account(metadata_key)
+        .await
+        .unwrap()
+        .unwrap();
+
+    let des = Metadata::safe_deserialize(&info.data).unwrap();
+    assert!(des.collection.unwrap().verified);
+
+    let ix = unverify_nft(
+        unverify_nft::Accounts {
+            metadata_account: &metadata_key,
+            edition_account: &edition_key,
+            collection_metadata: &collection_metadata_key,
+            collection_mint: &collection_mint,
+            central_state: &central_key,
+            fee_payer: &prg_test_ctx.payer.pubkey(),
+            metadata_program: &mpl_token_metadata::ID,
+            system_program: &system_program::ID,
+            rent_account: &sysvar::rent::ID,
+            #[cfg(not(feature = "devnet"))]
+            metadata_signer: &METADATA_SIGNER,
+        },
+        unverify_nft::Params {},
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap();
+    let info = prg_test_ctx
+        .banks_client
+        .get_account(metadata_key)
+        .await
+        .unwrap()
+        .unwrap();
+
+    let des = Metadata::safe_deserialize(&info.data).unwrap();
+    assert!(!des.collection.unwrap().verified);
 }

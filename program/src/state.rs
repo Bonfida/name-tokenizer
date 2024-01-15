@@ -19,7 +19,7 @@ pub const SELLER_BASIS: u16 = 500;
 
 pub const META_SYMBOL: &str = ".sol";
 
-pub const CREATOR_KEY: Pubkey = pubkey!("94xt1Eyc56YDU6MtV7KsG8xfeRqd7z272g14tBHztnUM");
+pub const CREATOR_KEY: Pubkey = pubkey!("5D2zKog251d6KPCyFyLMt3KroWwXXPWSgTPyhV22K2gR");
 
 pub const CREATOR_FEE: Creator = Creator {
     address: CREATOR_KEY,
@@ -34,7 +34,7 @@ pub const COLLECTION_NAME: &str = "Solana name service collection";
 pub const COLLECTION_URI: &str =
     "https://cloudflare-ipfs.com/ipfs/QmPeTioTicb19seM6itP8KD39syNZVJS2KHXNkxauSGXAJ";
 
-pub const METADATA_SIGNER: Pubkey = pubkey!("ARy9ZzW9qFCb8c8Lxi4NCph1TRNabUaMH5tj4e5pqwHb");
+pub const METADATA_SIGNER: Pubkey = pubkey!("Es33LnWSTZ9GbW6yBaRkSLUaFibVd7iS54e4AvBg76LX");
 
 #[derive(BorshSerialize, BorshDeserialize, BorshSize, PartialEq)]
 #[allow(missing_docs)]
