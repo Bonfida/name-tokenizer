@@ -292,7 +292,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             },
             CreateMetadataAccountV3InstructionArgs {
                 data: DataV2 {
-                    name: COLLECTION_NAME.to_string(),
+                    name,
                     symbol: META_SYMBOL.to_string(),
                     uri,
                     seller_fee_basis_points: SELLER_BASIS,
