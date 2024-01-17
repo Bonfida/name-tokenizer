@@ -1,7 +1,7 @@
 use {
     bonfida_utils::BorshSize,
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_token_metadata::state::Creator,
+    mpl_token_metadata::types::Creator,
     solana_program::{pubkey, pubkey::Pubkey},
 };
 

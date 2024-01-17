@@ -1,7 +1,5 @@
 use {
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_token_metadata::pda::{find_master_edition_account, find_metadata_account},
-    mpl_token_metadata::state::Metadata,
     name_tokenizer::{
         entrypoint::process_instruction,
         instruction::{
@@ -26,7 +24,7 @@ use {
 
 pub mod common;
 
-use mpl_token_metadata::state::{Collection, TokenMetadataAccount};
+use mpl_token_metadata::accounts::{MasterEdition, Metadata};
 use name_tokenizer::instruction::edit_data;
 
 use crate::common::utils::{mint_bootstrap, sign_send_instructions};
@@ -147,8 +145,8 @@ async fn test_offer() {
     ////
     // Create collection
     ////
-    let (edition_key, _) = find_master_edition_account(&collection_mint);
-    let (collection_metadata_key, _) = find_metadata_account(&collection_mint);
+    let (edition_key, _) = MasterEdition::find_pda(&collection_mint);
+    let (collection_metadata_key, _) = Metadata::find_pda(&collection_mint);
     let ix = create_collection(
         create_collection::Accounts {
             collection_mint: &collection_mint,
@@ -197,7 +195,7 @@ async fn test_offer() {
     let alice_nft_ata = get_associated_token_address(&alice.pubkey(), &nft_mint);
     let bob_nft_ata = get_associated_token_address(&bob.pubkey(), &nft_mint);
     let (nft_record, _) = NftRecord::find_key(&name_key, &name_tokenizer::ID);
-    let (metadata_key, _) = find_metadata_account(&nft_mint);
+    let (metadata_key, _) = Metadata::find_pda(&nft_mint);
 
     let ix = create_nft(
         create_nft::Accounts {

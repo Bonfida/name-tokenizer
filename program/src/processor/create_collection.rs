@@ -1,5 +1,15 @@
 //! Create a verified collection
 
+use mpl_token_metadata::{
+    accounts::{MasterEdition, Metadata},
+    instructions::{
+        CreateMasterEditionV3Cpi, CreateMasterEditionV3CpiAccounts,
+        CreateMasterEditionV3InstructionArgs, CreateMetadataAccountV3Cpi,
+        CreateMetadataAccountV3CpiAccounts, CreateMetadataAccountV3InstructionArgs,
+    },
+    types::DataV2,
+};
+
 use crate::{
     cpi::Cpi,
     state::{COLLECTION_NAME, COLLECTION_PREFIX, COLLECTION_URI, META_SYMBOL},
@@ -11,11 +21,7 @@ use {
         BorshSize, InstructionsAccount,
     },
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_token_metadata::{
-        instruction::{create_master_edition_v3, create_metadata_accounts_v3},
-        pda::{find_master_edition_account, find_metadata_account},
-        state::Creator,
-    },
+    mpl_token_metadata::types::Creator,
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
@@ -127,10 +133,10 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
     check_account_key(accounts.collection_mint, &collection_mint)?;
 
-    let (metadata_key, _) = find_metadata_account(&collection_mint);
+    let (metadata_key, _) = Metadata::find_pda(&collection_mint);
     check_account_key(accounts.metadata_account, &metadata_key)?;
 
-    let (edition_key, _) = find_master_edition_account(&collection_mint);
+    let (edition_key, _) = MasterEdition::find_pda(&collection_mint);
     check_account_key(accounts.edition, &edition_key)?;
 
     // Create mint account
@@ -220,66 +226,53 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         verified: true,
         share: 100,
     };
-    let ix = create_metadata_accounts_v3(
-        mpl_token_metadata::ID,
-        *accounts.metadata_account.key,
-        collection_mint,
-        crate::central_state::KEY,
-        *accounts.fee_payer.key,
-        crate::central_state::KEY,
-        COLLECTION_NAME.to_string(),
-        META_SYMBOL.to_string(),
-        COLLECTION_URI.to_string(),
-        Some(vec![central_creator]),
-        0,
-        true,
-        true,
-        None,
-        None,
-        None
-    );
-
-    invoke_signed(
-        &ix,
-        &[
-            accounts.metadata_program.clone(),
-            accounts.metadata_account.clone(),
-            accounts.rent_account.clone(),
-            accounts.collection_mint.clone(),
-            accounts.central_state.clone(),
-            accounts.fee_payer.clone(),
-        ],
-        &[seeds],
-    )?;
+    CreateMetadataAccountV3Cpi::new(
+        accounts.metadata_program,
+        CreateMetadataAccountV3CpiAccounts {
+            metadata: accounts.metadata_account,
+            mint: accounts.collection_mint,
+            mint_authority: accounts.central_state,
+            payer: accounts.fee_payer,
+            update_authority: (accounts.central_state, true),
+            system_program: accounts.system_program,
+            rent: Some(accounts.rent_account),
+        },
+        CreateMetadataAccountV3InstructionArgs {
+            data: DataV2 {
+                name: COLLECTION_NAME.to_string(),
+                uri: COLLECTION_URI.to_string(),
+                symbol: META_SYMBOL.to_string(),
+                seller_fee_basis_points: 0,
+                creators: Some(vec![central_creator]),
+                uses: None,
+                collection: None,
+            },
+            is_mutable: true,
+            collection_details: None,
+        },
+    )
+    .invoke_signed(&[seeds])?;
 
     // Create master edition
     msg!("+ Creating master edition");
-    let ix = create_master_edition_v3(
-        mpl_token_metadata::ID,
-        edition_key,
-        collection_mint,
-        crate::central_state::KEY,
-        crate::central_state::KEY,
-        metadata_key,
-        *accounts.fee_payer.key,
-        Some(0),
-    );
-    invoke_signed(
-        &ix,
-        &[
-            accounts.metadata_program.clone(),
-            accounts.edition.clone(),
-            accounts.collection_mint.clone(),
-            accounts.central_state.clone(),
-            accounts.central_state.clone(),
-            accounts.fee_payer.clone(),
-            accounts.metadata_account.clone(),
-            accounts.spl_token_program.clone(),
-            accounts.system_program.clone(),
-            accounts.rent_account.clone(),
-        ],
-        &[seeds],
-    )?;
+    CreateMasterEditionV3Cpi::new(
+        accounts.metadata_program,
+        CreateMasterEditionV3CpiAccounts {
+            edition: accounts.edition,
+            mint: accounts.collection_mint,
+            update_authority: accounts.central_state,
+            token_program: accounts.spl_token_program,
+            system_program: accounts.system_program,
+            rent: Some(accounts.rent_account),
+            mint_authority: accounts.central_state,
+            metadata: accounts.metadata_account,
+            payer: accounts.fee_payer,
+        },
+        CreateMasterEditionV3InstructionArgs {
+            max_supply: Some(0),
+        },
+    )
+    .invoke_signed(&[seeds])?;
 
     Ok(())
 }

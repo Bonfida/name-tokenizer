@@ -1,10 +1,21 @@
 //! Tokenize a domain name
 
+use mpl_token_metadata::{
+    accounts::{MasterEdition, Metadata},
+    instructions::{
+        CreateMetadataAccountV3Cpi, CreateMetadataAccountV3CpiAccounts,
+        CreateMetadataAccountV3InstructionArgs, SetAndVerifyCollectionCpi,
+        SetAndVerifyCollectionCpiAccounts, UnverifyCollectionCpi, UnverifyCollectionCpiAccounts,
+        UpdateMetadataAccountV2Cpi, UpdateMetadataAccountV2CpiAccounts,
+        UpdateMetadataAccountV2InstructionArgs,
+    },
+};
+
 use crate::{
     cpi::Cpi,
     state::{
-        NftRecord, Tag, COLLECTION_PREFIX, CREATOR_FEE, METADATA_SIGNER, META_SYMBOL, MINT_PREFIX,
-        SELLER_BASIS,
+        NftRecord, Tag, COLLECTION_NAME, COLLECTION_PREFIX, CREATOR_FEE, METADATA_SIGNER,
+        META_SYMBOL, MINT_PREFIX, SELLER_BASIS,
     },
     utils::check_name,
 };
@@ -15,14 +26,7 @@ use {
         BorshSize, InstructionsAccount,
     },
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_token_metadata::{
-        instruction::{
-            create_metadata_accounts_v3, set_and_verify_collection, unverify_collection,
-            update_metadata_accounts_v2,
-        },
-        pda::{find_master_edition_account, find_metadata_account},
-        state::{Creator, DataV2},
-    },
+    mpl_token_metadata::types::{Creator, DataV2},
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
@@ -187,7 +191,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     check_name(&name, accounts.name_account)?;
 
     // Verify metadata PDA
-    let (metadata_key, _) = find_metadata_account(&mint);
+    let (metadata_key, _) = Metadata::find_pda(&mint);
     check_account_key(accounts.metadata_account, &metadata_key)?;
 
     // Verify edition PDA
@@ -195,11 +199,11 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
         Pubkey::find_program_address(&[COLLECTION_PREFIX, &program_id.to_bytes()], program_id);
     check_account_key(accounts.collection_mint, &collection_mint)?;
 
-    let (edition_key, _) = find_master_edition_account(&collection_mint);
+    let (edition_key, _) = MasterEdition::find_pda(&collection_mint);
     check_account_key(accounts.edition_account, &edition_key)?;
 
     // Verify collection metadata PDA
-    let (collection_metadata, _) = find_metadata_account(&collection_mint);
+    let (collection_metadata, _) = Metadata::find_pda(&collection_mint);
     check_account_key(accounts.collection_metadata, &collection_metadata)?;
 
     // Verify mint
@@ -275,61 +279,47 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     };
     if accounts.metadata_account.data_is_empty() {
         msg!("+ Creating metadata");
-        let ix = create_metadata_accounts_v3(
-            mpl_token_metadata::ID,
-            *accounts.metadata_account.key,
-            mint,
-            crate::central_state::KEY,
-            *accounts.fee_payer.key,
-            crate::central_state::KEY,
-            name,
-            META_SYMBOL.to_string(),
-            uri,
-            Some(vec![central_creator, CREATOR_FEE]),
-            SELLER_BASIS,
-            true,
-            true,
-            None,
-            None,
-            None
-        );
-        invoke_signed(
-            &ix,
-            &[
-                accounts.metadata_program.clone(),
-                accounts.metadata_account.clone(),
-                accounts.rent_account.clone(),
-                accounts.mint.clone(),
-                accounts.central_state.clone(),
-                accounts.fee_payer.clone(),
-            ],
-            &[seeds],
-        )?;
+        CreateMetadataAccountV3Cpi::new(
+            accounts.metadata_program,
+            CreateMetadataAccountV3CpiAccounts {
+                metadata: accounts.metadata_account,
+                mint: accounts.mint,
+                mint_authority: accounts.central_state,
+                payer: accounts.fee_payer,
+                update_authority: (accounts.central_state, true),
+                system_program: accounts.system_program,
+                rent: Some(accounts.rent_account),
+            },
+            CreateMetadataAccountV3InstructionArgs {
+                data: DataV2 {
+                    name,
+                    symbol: META_SYMBOL.to_string(),
+                    uri,
+                    seller_fee_basis_points: SELLER_BASIS,
+                    creators: Some(vec![central_creator, CREATOR_FEE]),
+                    collection: None,
+                    uses: None,
+                },
+                is_mutable: true,
+                collection_details: None,
+            },
+        )
+        .invoke_signed(&[seeds])?;
     } else {
         msg!("+ Metadata already exists");
-
         // Unverify collection first
-        let ix = unverify_collection(
-            mpl_token_metadata::ID,
-            metadata_key,
-            crate::central_state::KEY,
-            collection_mint,
-            collection_metadata,
-            edition_key,
-            None,
-        );
-        invoke_signed(
-            &ix,
-            &[
-                accounts.metadata_program.clone(),
-                accounts.metadata_account.clone(),
-                accounts.central_state.clone(),
-                accounts.collection_mint.clone(),
-                accounts.collection_metadata.clone(),
-                accounts.edition_account.clone(),
-            ],
-            &[seeds],
-        )?;
+        UnverifyCollectionCpi::new(
+            accounts.metadata_program,
+            UnverifyCollectionCpiAccounts {
+                metadata: accounts.metadata_account,
+                collection_authority: accounts.central_state,
+                collection_mint: accounts.collection_mint,
+                collection: accounts.collection_metadata,
+                collection_master_edition_account: accounts.edition_account,
+                collection_authority_record: None,
+            },
+        )
+        .invoke_signed(&[seeds])?;
 
         let data = DataV2 {
             name,
@@ -340,52 +330,37 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
             collection: None,
             uses: None,
         };
-        let ix = update_metadata_accounts_v2(
-            mpl_token_metadata::ID,
-            metadata_key,
-            crate::central_state::KEY,
-            Some(crate::central_state::KEY),
-            Some(data),
-            None,
-            None,
-        );
-        invoke_signed(
-            &ix,
-            &[
-                accounts.metadata_program.clone(),
-                accounts.metadata_account.clone(),
-                accounts.central_state.clone(),
-            ],
-            &[seeds],
-        )?
+        UpdateMetadataAccountV2Cpi::new(
+            accounts.metadata_program,
+            UpdateMetadataAccountV2CpiAccounts {
+                metadata: accounts.metadata_account,
+                update_authority: accounts.central_state,
+            },
+            UpdateMetadataAccountV2InstructionArgs {
+                data: Some(data),
+                new_update_authority: Some(crate::central_state::KEY),
+                primary_sale_happened: None,
+                is_mutable: None,
+            },
+        )
+        .invoke_signed(&[seeds])?;
     }
 
     msg!("+ Verifying collection");
-    let ix = set_and_verify_collection(
-        mpl_token_metadata::ID,
-        metadata_key,
-        crate::central_state::KEY,
-        *accounts.fee_payer.key,
-        crate::central_state::KEY,
-        collection_mint,
-        collection_metadata,
-        edition_key,
-        None,
-    );
-    invoke_signed(
-        &ix,
-        &[
-            accounts.metadata_program.clone(),
-            accounts.metadata_account.clone(),
-            accounts.central_state.clone(),
-            accounts.fee_payer.clone(),
-            accounts.central_state.clone(),
-            accounts.collection_mint.clone(),
-            accounts.collection_metadata.clone(),
-            accounts.edition_account.clone(),
-        ],
-        &[seeds],
-    )?;
+    SetAndVerifyCollectionCpi::new(
+        accounts.metadata_program,
+        SetAndVerifyCollectionCpiAccounts {
+            metadata: accounts.metadata_account,
+            update_authority: accounts.central_state,
+            collection_authority: accounts.central_state,
+            payer: accounts.fee_payer,
+            collection_mint: accounts.collection_mint,
+            collection: accounts.collection_metadata,
+            collection_master_edition_account: accounts.edition_account,
+            collection_authority_record: None,
+        },
+    )
+    .invoke_signed(&[seeds])?;
 
     // Transfer domain
     let ix = transfer(
