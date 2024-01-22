@@ -14,11 +14,14 @@ import {
 } from "./state";
 import {
   TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress,
+  getAssociatedTokenAddressSync,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { Buffer } from "buffer";
-import { NAME_PROGRAM_ID } from "@bonfida/spl-name-service";
+
+const NAME_PROGRAM_ID = new PublicKey(
+  "namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX"
+);
 
 const METADATA_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
@@ -67,17 +70,17 @@ export const NAME_TOKENIZER_ID_DEVNET = new PublicKey(
  * @param programId The Name tokenizer program ID
  * @returns
  */
-export const createMint = async (
+export const createMint = (
   nameAccount: PublicKey,
   feePayer: PublicKey,
   programId: PublicKey
 ) => {
-  const [centralKey] = await PublicKey.findProgramAddress(
+  const [centralKey] = PublicKey.findProgramAddressSync(
     [programId.toBuffer()],
     programId
   );
 
-  const [mint] = await PublicKey.findProgramAddress(
+  const [mint] = PublicKey.findProgramAddressSync(
     [MINT_PREFIX, nameAccount.toBuffer()],
     programId
   );
@@ -102,21 +105,18 @@ export const createMint = async (
  * @param programId The Name tokenizer program ID
  * @returns
  */
-export const createCollection = async (
-  feePayer: PublicKey,
-  programId: PublicKey
-) => {
-  const [centralKey] = await PublicKey.findProgramAddress(
+export const createCollection = (feePayer: PublicKey, programId: PublicKey) => {
+  const [centralKey] = PublicKey.findProgramAddressSync(
     [programId.toBuffer()],
     programId
   );
-  const [collectionMint] = await PublicKey.findProgramAddress(
+  const [collectionMint] = PublicKey.findProgramAddressSync(
     [COLLECTION_PREFIX, programId.toBuffer()],
     programId
   );
   const collectionMetadata = getMetadataPda(collectionMint);
   const editionAccount = getMasterEditionPda(collectionMint);
-  const centralStateAta = await getAssociatedTokenAddress(
+  const centralStateAta = getAssociatedTokenAddressSync(
     collectionMint,
     centralKey,
     true
@@ -151,7 +151,7 @@ export const createCollection = async (
  * @param programId The Name tokenizer program ID
  * @returns
  */
-export const createNft = async (
+export const createNft = (
   name: string,
   uri: string,
   nameAccount: PublicKey,
@@ -159,22 +159,22 @@ export const createNft = async (
   feePayer: PublicKey,
   programId: PublicKey
 ) => {
-  const [centralKey] = await PublicKey.findProgramAddress(
+  const [centralKey] = PublicKey.findProgramAddressSync(
     [programId.toBuffer()],
     programId
   );
 
-  const [mint] = await PublicKey.findProgramAddress(
+  const [mint] = PublicKey.findProgramAddressSync(
     [MINT_PREFIX, nameAccount.toBuffer()],
     programId
   );
 
-  const [nftRecord] = await NftRecord.findKey(nameAccount, programId);
-  const nftDestination = await getAssociatedTokenAddress(mint, nameOwner);
+  const [nftRecord] = NftRecord.findKeySync(nameAccount, programId);
+  const nftDestination = getAssociatedTokenAddressSync(mint, nameOwner);
 
   const metadataAccount = getMetadataPda(mint);
 
-  const [collectionMint] = await PublicKey.findProgramAddress(
+  const [collectionMint] = PublicKey.findProgramAddressSync(
     [COLLECTION_PREFIX, programId.toBuffer()],
     programId
   );
@@ -215,18 +215,18 @@ export const createNft = async (
  * @param programId The Name tokenizer program ID
  * @returns
  */
-export const redeemNft = async (
+export const redeemNft = (
   nameAccount: PublicKey,
   nftOwner: PublicKey,
   programId: PublicKey
 ) => {
-  const [mint] = await PublicKey.findProgramAddress(
+  const [mint] = PublicKey.findProgramAddressSync(
     [MINT_PREFIX, nameAccount.toBuffer()],
     programId
   );
 
-  const [nftRecord] = await NftRecord.findKey(nameAccount, programId);
-  const nftSource = await getAssociatedTokenAddress(mint, nftOwner);
+  const [nftRecord] = NftRecord.findKeySync(nameAccount, programId);
+  const nftSource = getAssociatedTokenAddressSync(mint, nftOwner);
 
   const ix = new redeemNftInstruction().getInstruction(
     programId,
@@ -251,20 +251,16 @@ export const redeemNft = async (
  * @param programId The Name tokenizer program ID
  * @returns
  */
-export const withdrawTokens = async (
+export const withdrawTokens = (
   nftMint: PublicKey,
   tokenMint: PublicKey,
   nftOwner: PublicKey,
   nftRecord: PublicKey,
   programId: PublicKey
 ) => {
-  const tokenDestination = await getAssociatedTokenAddress(tokenMint, nftOwner);
-  const tokenSource = await getAssociatedTokenAddress(
-    tokenMint,
-    nftRecord,
-    true
-  );
-  const nft = await getAssociatedTokenAddress(nftMint, nftOwner);
+  const tokenDestination = getAssociatedTokenAddressSync(tokenMint, nftOwner);
+  const tokenSource = getAssociatedTokenAddressSync(tokenMint, nftRecord, true);
+  const nft = getAssociatedTokenAddressSync(nftMint, nftOwner);
 
   const ix = new withdrawTokensInstruction().getInstruction(
     programId,

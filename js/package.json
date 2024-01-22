@@ -36,7 +36,7 @@
     "doc": "yarn typedoc src/index.ts"
   },
   "devDependencies": {
-    "@bonfida/spl-name-service": "1.5.0",
+    "@bonfida/spl-name-service": "^1.5.0",
     "@bonfida/utils": "^0.0.7",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
     "@rollup/plugin-babel": "^6.0.4",
@@ -47,7 +47,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "@solana/spl-token": "^0.3.7",
-    "@solana/web3.js": "^1.73.2",
+    "@solana/web3.js": "^1.87.3",
     "@tsconfig/recommended": "^1.0.3",
     "@types/bs58": "^4.0.1",
     "@types/jest": "^29.5.1",
@@ -60,6 +60,7 @@
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "rollup": "^4.3.0",
+    "rollup-plugin-visualizer": "^5.12.0",
     "save-dev": "0.0.1-security",
     "tmp": "^0.2.1",
     "ts-jest": "^29.1.0",
@@ -69,14 +70,11 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@bonfida/spl-name-service": "1.5.0",
-    "@solana/spl-token": "^0.3.7",
-    "bn.js": "^5.2.0",
-    "borsh": "^0.6.0",
-    "bs58": "4.0.1",
+    "@solana/spl-token": "^0.3.11",
+    "borsh": "2.0.0",
     "buffer": "^6.0.3"
   },
   "peerDependencies": {
-    "@solana/web3.js": "^1.73.2"
+    "@solana/web3.js": "^1.87.3"
   }
 }
