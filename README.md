@@ -27,10 +27,12 @@ Tokenize domain name into Metaplex NFTs
 
 1. [Program ID](#program-id)
 2. [Introduction](#introduction)
-3. [Collection](#collection)
-4. [Mint](#mint)
-5. [NFT](#nft)
-6. [Tests](#tests)
+3. [Security](#security)
+4. [Reproducible build](#build)
+5. [Collection](#collection)
+6. [Mint](#mint)
+7. [NFT](#nft)
+8. [Tests](#tests)
    - Rust
    - JS
 
@@ -47,6 +49,20 @@ Mainnet program ID `nftD3vbNkNqfj2Sd3HZwbpw4BxxKWr4AjGb9X38JeZk`
 <br />
 
 This program allows people to tokenize their domain name in NFTs that follow the [Metaplex standard](https://github.com/metaplex-foundation/metaplex-program-library/tree/master/token-metadata) with a creation/redemption mechanism.
+
+<br />
+<a name="build"></a>
+<h2 align="center">Reproducible build</h2>
+<br />
+
+A reproducible build script (`build.sh`) can be used to build the program using docker
+
+<br />
+<a name="security"></a>
+<h2 align="center">Security</h2>
+<br />
+
+For security disclosures or to report a bug, please visit [ImmuneFi](https://immunefi.com/bounty/bonfida/) for more information on our bug bounty program.
 
 <br />
 <a name="collection"></a>
