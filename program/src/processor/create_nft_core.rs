@@ -108,8 +108,10 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_key(accounts.metadata_signer, &METADATA_CORE_SIGNER)?;
 
         // Check owners
-
+        check_account_owner(accounts.core_asset, &mpl_core::ID)
+            .or_else(|_| check_account_owner(accounts.core_asset, &system_program::ID))?;
         check_account_owner(accounts.name_account, &spl_name_service::ID)?;
+        check_account_owner(accounts.collection, &mpl_core::ID)?;
         check_account_owner(accounts.core_record, &system_program::ID)
             .or_else(|_| check_account_owner(accounts.core_record, program_id))?;
 
@@ -128,6 +130,9 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
 
     let (asset_key, asset_nonce) = utils::get_core_nft_key(accounts.name_account.key);
     check_account_key(accounts.core_asset, &asset_key)?;
+
+    let (collection_key, _) = utils::get_core_collection_key();
+    check_account_key(accounts.collection, &collection_key)?;
 
     // Create NFT record
     let (core_record_key, core_record_nonce) =

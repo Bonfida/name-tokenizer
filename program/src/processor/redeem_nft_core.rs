@@ -14,14 +14,12 @@ use {
         program::invoke_signed,
         program_error::ProgramError,
         pubkey::Pubkey,
+        system_program,
     },
     spl_name_service::instruction::transfer,
 };
 
-use crate::{
-    state::{CoreRecord, Tag},
-    utils,
-};
+use crate::state::{CoreRecord, Tag};
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {}
@@ -79,11 +77,14 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         };
 
         // Check keys
+        check_account_key(accounts.central_state, &crate::central_state::KEY)?;
         check_account_key(accounts.mpl_core_program, &mpl_core::ID)?;
         check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
+        check_account_key(accounts.system_program, &system_program::ID)?;
 
         // Check owners
         check_account_owner(accounts.core_asset, &mpl_core::ID)?;
+        check_account_owner(accounts.collection, &mpl_core::ID)?;
         check_account_owner(accounts.core_record, program_id)?;
         check_account_owner(accounts.name_account, &spl_name_service::ID)?;
 
@@ -101,9 +102,11 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let (core_record_key, _) = CoreRecord::find_key(accounts.name_account.key, program_id);
     check_account_key(accounts.core_record, &core_record_key)?;
 
-    let (core_asset, _) = utils::get_core_nft_key(accounts.name_account.key);
-
+    let (core_asset, _) = crate::utils::get_core_nft_key(accounts.name_account.key);
     check_account_key(accounts.core_asset, &core_asset)?;
+
+    let (collection_key, _) = crate::utils::get_core_collection_key();
+    check_account_key(accounts.collection, &collection_key)?;
 
     // Transfer MPL Core asset
     msg!("[+] Transfer Core asset");
