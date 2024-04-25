@@ -29,6 +29,7 @@ spl-name-service = { version = "0.3.0", features = ["no-entrypoint"] }
 mpl-token-metadata = { version = "4.0.0" }
 solana-security-txt = "1.1.1"
 ahash = "=0.8.6"
+mpl-core = {git = "https://github.com/metaplex-foundation/mpl-core.git"}
 
 
 [dev-dependencies]

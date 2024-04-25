@@ -1,6 +1,6 @@
 pub use crate::processor::{
     create_collection, create_mint, create_nft, edit_data, redeem_nft, unverify_nft,
-    withdraw_tokens,
+    withdraw_tokens, create_collection_core, create_nft_core, redeem_nft_core, withdraw_tokens_core
 };
 use {
     bonfida_utils::InstructionsAccount,
@@ -113,6 +113,10 @@ pub enum ProgramInstruction {
     /// | 8     | ❌        | ❌      | Rent sysvar account          |
     /// | 9     | ❌        | ✅      | The metadata signer          |
     UnverifyNft,
+    CreateCollectionCore,
+    CreateNftCore,
+    RedeemNftCore,
+    WithdrawTokensCore
 }
 #[allow(missing_docs)]
 pub fn create_mint(
@@ -164,4 +168,37 @@ pub fn unverify_nft(
     params: unverify_nft::Params,
 ) -> Instruction {
     accounts.get_instruction(crate::ID, ProgramInstruction::UnverifyNft as u8, params)
+}
+
+
+#[allow(missing_docs)]
+pub fn create_collection_core(
+    accounts: create_collection_core::Accounts<Pubkey>,
+    params: create_collection_core::Params,
+) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::CreateCollectionCore as u8, params)
+}
+
+#[allow(missing_docs)]
+pub fn create_nft_core(
+    accounts: create_nft_core::Accounts<Pubkey>,
+    params: create_nft_core::Params,
+) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::CreateNftCore as u8, params)
+}
+
+#[allow(missing_docs)]
+pub fn redeem_nft_core(
+    accounts: redeem_nft_core::Accounts<Pubkey>,
+    params: redeem_nft_core::Params,
+) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::RedeemNftCore as u8, params)
+}
+
+#[allow(missing_docs)]
+pub fn withdraw_tokens_core(
+    accounts: withdraw_tokens_core::Accounts<Pubkey>,
+    params: withdraw_tokens_core::Params,
+) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::WithdrawTokensCore as u8, params)
 }

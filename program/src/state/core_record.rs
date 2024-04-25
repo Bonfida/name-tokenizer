@@ -8,7 +8,7 @@ use super::Tag;
 
 #[derive(BorshSerialize, BorshDeserialize, BorshSize)]
 #[allow(missing_docs)]
-pub struct NftRecord {
+pub struct CoreRecord {
     /// Tag
     pub tag: Tag,
 
@@ -21,26 +21,26 @@ pub struct NftRecord {
     /// Record owner
     pub owner: Pubkey,
 
-    /// NFT mint
-    pub nft_mint: Pubkey,
+    /// MPL Core asset key
+    pub core_asset: Pubkey,
 }
 
 #[allow(missing_docs)]
-impl NftRecord {
-    pub const SEED: &'static [u8; 10] = b"nft_record";
+impl CoreRecord {
+    pub const SEED: &'static [u8; 11] = b"core_record";
 
-    pub fn new(nonce: u8, owner: Pubkey, name_account: Pubkey, nft_mint: Pubkey) -> Self {
+    pub fn new(nonce: u8, owner: Pubkey, name_account: Pubkey, core_asset: Pubkey) -> Self {
         Self {
-            tag: Tag::ActiveRecord,
+            tag: Tag::ActiveCoreRecord,
             nonce,
             owner,
             name_account,
-            nft_mint,
+            core_asset,
         }
     }
 
     pub fn find_key(name_account: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
-        let seeds: &[&[u8]] = &[NftRecord::SEED, &name_account.to_bytes()];
+        let seeds: &[&[u8]] = &[CoreRecord::SEED, &name_account.to_bytes()];
         Pubkey::find_program_address(seeds, program_id)
     }
 
@@ -48,16 +48,16 @@ impl NftRecord {
         self.serialize(&mut dst).unwrap()
     }
 
-    pub fn from_account_info(a: &AccountInfo, tag: Tag) -> Result<NftRecord, ProgramError> {
+    pub fn from_account_info(a: &AccountInfo, tag: Tag) -> Result<CoreRecord, ProgramError> {
         let mut data = &a.data.borrow() as &[u8];
         if data[0] != tag as u8 {
             return Err(TokenizerError::DataTypeMismatch.into());
         }
-        let result = NftRecord::deserialize(&mut data)?;
+        let result = CoreRecord::deserialize(&mut data)?;
         Ok(result)
     }
 
     pub fn is_active(&self) -> bool {
-        self.tag == Tag::ActiveRecord
+        self.tag == Tag::ActiveCoreRecord
     }
 }

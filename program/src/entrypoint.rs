@@ -1,4 +1,4 @@
-use crate::{error::OfferError, processor::Processor};
+use crate::{error::TokenizerError, processor::Processor};
 
 use {
     num_traits::FromPrimitive,
@@ -22,22 +22,27 @@ pub fn process_instruction(
     msg!("Entrypoint");
     if let Err(error) = Processor::process_instruction(program_id, accounts, instruction_data) {
         // catch the error so we can print it
-        error.print::<OfferError>();
+        error.print::<TokenizerError>();
         return Err(error);
     }
     Ok(())
 }
 
-impl PrintProgramError for OfferError {
+impl PrintProgramError for TokenizerError {
     fn print<E>(&self)
     where
         E: 'static + std::error::Error + DecodeError<E> + PrintProgramError + FromPrimitive,
     {
         match self {
-            OfferError::AlreadyInitialized => msg!("Error: This account is already initialized"),
-            OfferError::DataTypeMismatch => msg!("Error: Data type mismatch"),
-            OfferError::WrongOwner => msg!("Error: Wrong account owner"),
-            OfferError::Uninitialized => msg!("Error: Account is uninitialized"),
+            TokenizerError::AlreadyInitialized => {
+                msg!("Error: This account is already initialized")
+            }
+            TokenizerError::DataTypeMismatch => msg!("Error: Data type mismatch"),
+            TokenizerError::WrongOwner => msg!("Error: Wrong account owner"),
+            TokenizerError::Uninitialized => msg!("Error: Account is uninitialized"),
+            TokenizerError::InvalidCoreAssetState => msg!("Error: Invalid Core Asset state"),
+            TokenizerError::CoreAssetOwnerMismatch => msg!("Error: Core Asset owner mismatch"),
+            TokenizerError::CoreAssetMistmatch => msg!("Error: Core Asset mismatch"),
         }
     }
 }

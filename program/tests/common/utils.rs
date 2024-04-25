@@ -15,6 +15,8 @@ pub async fn sign_send_instructions(
     instructions: Vec<Instruction>,
     signers: Vec<&Keypair>,
 ) -> Result<(), BanksClientError> {
+    let slot = ctx.banks_client.get_root_slot().await?;
+    ctx.warp_to_slot(slot + 1).unwrap();
     let mut transaction = Transaction::new_with_payer(&instructions, Some(&ctx.payer.pubkey()));
     let mut payer_signers = vec![&ctx.payer];
     for s in signers {

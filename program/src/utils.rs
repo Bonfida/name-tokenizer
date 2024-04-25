@@ -1,8 +1,9 @@
 use {
+    crate::state::{CORE_ASSET_PREFIX, CORE_COLLECTION_PREFIX},
     bonfida_utils::checks::check_account_owner,
     solana_program::{
         account_info::AccountInfo, entrypoint::ProgramResult, hash::hashv, msg,
-        program_error::ProgramError,
+        program_error::ProgramError, pubkey::Pubkey,
     },
     spl_name_service::state::{get_seeds_and_key, HASH_PREFIX},
 };
@@ -35,4 +36,12 @@ pub fn check_name(name: &str, account: &AccountInfo) -> ProgramResult {
     }
 
     Ok(())
+}
+
+pub fn get_core_collection_key() -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[CORE_COLLECTION_PREFIX, crate::ID.as_ref()], &crate::ID)
+}
+
+pub fn get_core_nft_key(domain: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[CORE_ASSET_PREFIX, domain.as_ref()], &crate::ID)
 }

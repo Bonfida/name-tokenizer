@@ -429,6 +429,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
+name = "base64"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9475866fec1451be56a3c2400fd081ff546538961565ccb5b7142cbd22bc7a51"
+
+[[package]]
 name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2166,6 +2172,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "mpl-core"
+version = "0.4.1"
+source = "git+https://github.com/metaplex-foundation/mpl-core.git#f32a17ea1924f600447d33e37e36be56e12d4123"
+dependencies = [
+ "base64 0.22.0",
+ "borsh 0.10.3",
+ "num-derive 0.3.3",
+ "num-traits",
+ "solana-program",
+ "thiserror",
+]
+
+[[package]]
 name = "mpl-token-metadata"
 version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2188,6 +2207,7 @@ dependencies = [
  "borsh 0.10.3",
  "enumflags2",
  "hexdump",
+ "mpl-core",
  "mpl-token-metadata",
  "num-derive 0.3.3",
  "num-traits",
