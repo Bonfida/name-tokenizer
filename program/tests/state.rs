@@ -22,7 +22,7 @@ pub mod common;
 use borsh::BorshDeserialize;
 use mpl_core::{
     types::{Key, UpdateAuthority},
-    Asset, BasePlugin, Collection, PluginsList, RoyaltiesPlugin,
+    Asset, Collection,
 };
 use name_tokenizer::{
     instruction::{create_collection_core, create_nft_core, redeem_nft_core, withdraw_tokens_core},
@@ -36,7 +36,6 @@ use crate::common::utils::{mint_bootstrap, sign_send_instructions};
 async fn test_mpl_core() {
     // Create program and test environment
     let alice = Keypair::new();
-    let bob = Keypair::new();
     let mint_authority = Keypair::new();
 
     let mut program_test = ProgramTest::new(

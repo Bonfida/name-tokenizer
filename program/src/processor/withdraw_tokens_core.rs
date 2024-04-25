@@ -22,7 +22,10 @@ use {
     spl_token::state::Account,
 };
 
-use crate::state::{CoreRecord, Tag};
+use crate::{
+    error::TokenizerError,
+    state::{CoreRecord, Tag},
+};
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
 pub struct Params {}
@@ -102,15 +105,17 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
 
     let asset = mpl_core::Asset::from_bytes(&accounts.core_asset.data.borrow())?;
 
-    if asset.base.owner != *accounts.core_asset_owner.key {
-        panic!()
-    }
-
     if core_record.core_asset != *accounts.core_asset.key {
-        panic!()
+        return Err(TokenizerError::CoreAssetMistmatch.into());
     }
 
-    check_account_key(accounts.core_asset_owner, &core_record.owner)?;
+    if core_record.is_active() {
+        if asset.base.owner != *accounts.core_asset_owner.key {
+            return Err(TokenizerError::CoreAssetOwnerMismatch.into());
+        }
+    } else {
+        check_account_key(accounts.core_asset_owner, &core_record.owner)?;
+    }
 
     // Withdraw SPL token
     let token_account = Account::unpack(&accounts.token_source.data.borrow())?;

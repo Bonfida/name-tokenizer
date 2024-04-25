@@ -174,7 +174,5 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
 
     core_record.save(&mut accounts.core_record.data.borrow_mut());
 
-    // Maybe close the core record instead?
-
     Ok(())
 }

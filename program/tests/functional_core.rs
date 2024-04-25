@@ -18,6 +18,7 @@ use {
 
 pub mod common;
 
+use mpl_core::instructions::TransferV1InstructionArgs;
 use name_tokenizer::{
     instruction::{create_collection_core, create_nft_core, redeem_nft_core, withdraw_tokens_core},
     state::CoreRecord,
@@ -257,6 +258,48 @@ async fn test_mpl_core() {
         withdraw_tokens_core::Params {},
     );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&alice])
+        .await
+        .unwrap();
+
+    ///////////////////////////////////////////////////
+    // Transfer Core Asset to Bob + Withdraw tokens Core
+    // - (1) Transfer to Bob
+    // - (2) Bob withdraws the tokens
+    ///////////////////////////////////////////////////
+
+    let ix = mpl_core::instructions::TransferV1 {
+        collection: Some(collection),
+        asset: core_asset,
+        payer: prg_test_ctx.payer.pubkey(),
+        authority: Some(alice.pubkey()),
+        new_owner: bob.pubkey(),
+        system_program: None,
+        log_wrapper: None,
+    };
+
+    sign_send_instructions(
+        &mut prg_test_ctx,
+        vec![ix.instruction(TransferV1InstructionArgs {
+            compression_proof: None,
+        })],
+        vec![&alice],
+    )
+    .await
+    .unwrap();
+
+    let ix = withdraw_tokens_core(
+        withdraw_tokens_core::Accounts {
+            core_asset: &core_asset,
+            core_asset_owner: &bob.pubkey(),
+            core_record: &core_record,
+            token_destination: &alice_ata,
+            token_source: &escrow_pda_ata,
+            system_program: &system_program::ID,
+            spl_token_program: &spl_token::ID,
+        },
+        withdraw_tokens_core::Params {},
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
         .await
         .unwrap();
 }
