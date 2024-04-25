@@ -1,17 +1,10 @@
 //! Tokenize a domain name
 
-use mpl_core::types::{
-    PermanentFreezeDelegate, PermanentTransferDelegate, PluginAuthorityPair, Royalties,
-};
-
 use crate::{
     cpi::Cpi,
     error::TokenizerError,
-    state::{
-        CoreRecord, NftRecord, Tag, CORE_ASSET_PREFIX, CORE_COLLECTION_PREFIX, CREATOR_KEY,
-        METADATA_CORE_SIGNER, METADATA_SIGNER, SELLER_BASIS,
-    },
-    utils::{self, check_name, get_core_collection_key},
+    state::{CoreRecord, Tag, CORE_ASSET_PREFIX, CREATOR_KEY, METADATA_CORE_SIGNER, SELLER_BASIS},
+    utils::{self, check_name, get_plugins},
 };
 
 use {
@@ -20,6 +13,7 @@ use {
         BorshSize, InstructionsAccount,
     },
     borsh::{BorshDeserialize, BorshSerialize},
+    mpl_core::types::{PermanentFreezeDelegate, Royalties},
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
@@ -132,7 +126,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
     let accounts = Accounts::parse(accounts, program_id)?;
     let Params { name, uri } = params;
 
-    let (asset_key, asset_nonce) = utils::get_core_nft_key(&accounts.name_account.key);
+    let (asset_key, asset_nonce) = utils::get_core_nft_key(accounts.name_account.key);
     check_account_key(accounts.core_asset, &asset_key)?;
 
     // Create NFT record
@@ -198,37 +192,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo], params: Params) ->
                 uri,
                 name,
                 data_state: mpl_core::types::DataState::AccountState,
-                plugins: Some(vec![
-                    PluginAuthorityPair {
-                        plugin: mpl_core::types::Plugin::PermanentTransferDelegate(
-                            PermanentTransferDelegate {},
-                        ),
-                        authority: Some(mpl_core::types::PluginAuthority::Address {
-                            address: crate::central_state::KEY,
-                        }),
-                    },
-                    PluginAuthorityPair {
-                        plugin: mpl_core::types::Plugin::PermanentFreezeDelegate(
-                            PermanentFreezeDelegate { frozen: false },
-                        ),
-                        authority: Some(mpl_core::types::PluginAuthority::Address {
-                            address: crate::central_state::KEY,
-                        }),
-                    },
-                    PluginAuthorityPair {
-                        plugin: mpl_core::types::Plugin::Royalties(Royalties {
-                            basis_points: SELLER_BASIS,
-                            creators: vec![mpl_core::types::Creator {
-                                address: CREATOR_KEY,
-                                percentage: 100,
-                            }],
-                            rule_set: mpl_core::types::RuleSet::None,
-                        }),
-                        authority: Some(mpl_core::types::PluginAuthority::Address {
-                            address: crate::central_state::KEY,
-                        }),
-                    },
-                ]),
+                plugins: Some(get_plugins()),
             },
         )
         .invoke_signed(&[

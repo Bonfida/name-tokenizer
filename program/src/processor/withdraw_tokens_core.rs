@@ -115,7 +115,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     // Withdraw SPL token
     let token_account = Account::unpack(&accounts.token_source.data.borrow())?;
 
-    msg!("+ Withdrawing tokens {}", token_account.amount);
+    msg!("[+] Withdrawing tokens {}", token_account.amount);
 
     let ix = spl_token::instruction::transfer(
         &spl_token::ID,
@@ -149,7 +149,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         .checked_sub(minimum_rent)
         .unwrap();
 
-    msg!("+ Withdrawing native SOL {}", lamports_to_withdraw);
+    msg!("[+] Withdrawing native SOL {}", lamports_to_withdraw);
     let mut nft_record_lamports = accounts.core_record.lamports.borrow_mut();
     let mut nft_owner_lamports = accounts.core_asset_owner.lamports.borrow_mut();
 

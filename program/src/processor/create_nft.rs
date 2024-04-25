@@ -14,8 +14,8 @@ use mpl_token_metadata::{
 use crate::{
     cpi::Cpi,
     state::{
-        NftRecord, Tag, COLLECTION_NAME, COLLECTION_PREFIX, CREATOR_FEE, METADATA_SIGNER,
-        META_SYMBOL, MINT_PREFIX, SELLER_BASIS,
+        NftRecord, Tag, COLLECTION_PREFIX, CREATOR_FEE, METADATA_SIGNER, META_SYMBOL, MINT_PREFIX,
+        SELLER_BASIS,
     },
     utils::check_name,
 };

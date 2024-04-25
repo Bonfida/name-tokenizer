@@ -1,11 +1,8 @@
 //! Create a verified MPL Core collection
 
 use crate::{
-    state::{
-        COLLECTION_CORE_NAME, COLLECTION_CORE_URI, CORE_COLLECTION_PREFIX, CREATOR_KEY,
-        SELLER_BASIS,
-    },
-    utils::get_core_collection_key,
+    state::{COLLECTION_CORE_NAME, COLLECTION_CORE_URI, CORE_COLLECTION_PREFIX},
+    utils::{get_core_collection_key, get_plugins},
 };
 
 use {
@@ -14,9 +11,6 @@ use {
         BorshSize, InstructionsAccount,
     },
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_core::types::{
-        PermanentFreezeDelegate, PermanentTransferDelegate, PluginAuthorityPair, Royalties,
-    },
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
@@ -95,37 +89,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         mpl_core::instructions::CreateCollectionV1InstructionArgs {
             name: COLLECTION_CORE_NAME.to_string(),
             uri: COLLECTION_CORE_URI.to_string(),
-            plugins: Some(vec![
-                PluginAuthorityPair {
-                    plugin: mpl_core::types::Plugin::PermanentTransferDelegate(
-                        PermanentTransferDelegate {},
-                    ),
-                    authority: Some(mpl_core::types::PluginAuthority::Address {
-                        address: crate::central_state::KEY,
-                    }),
-                },
-                PluginAuthorityPair {
-                    plugin: mpl_core::types::Plugin::PermanentFreezeDelegate(
-                        PermanentFreezeDelegate { frozen: false },
-                    ),
-                    authority: Some(mpl_core::types::PluginAuthority::Address {
-                        address: crate::central_state::KEY,
-                    }),
-                },
-                PluginAuthorityPair {
-                    plugin: mpl_core::types::Plugin::Royalties(Royalties {
-                        basis_points: SELLER_BASIS,
-                        creators: vec![mpl_core::types::Creator {
-                            address: CREATOR_KEY,
-                            percentage: 100,
-                        }],
-                        rule_set: mpl_core::types::RuleSet::None,
-                    }),
-                    authority: Some(mpl_core::types::PluginAuthority::Address {
-                        address: crate::central_state::KEY,
-                    }),
-                },
-            ]),
+            plugins: Some(get_plugins()),
         },
     )
     .invoke_signed(&[&[

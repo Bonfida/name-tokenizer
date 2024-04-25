@@ -101,7 +101,7 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let (core_record_key, _) = CoreRecord::find_key(accounts.name_account.key, program_id);
     check_account_key(accounts.core_record, &core_record_key)?;
 
-    let (core_asset, _) = utils::get_core_nft_key(&accounts.name_account.key);
+    let (core_asset, _) = utils::get_core_nft_key(accounts.name_account.key);
 
     check_account_key(accounts.core_asset, &core_asset)?;
 
