@@ -99,6 +99,8 @@ pub fn process(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let mut core_record =
         CoreRecord::from_account_info(accounts.core_record, Tag::ActiveCoreRecord)?;
 
+    check_account_key(accounts.core_asset, &core_record.core_asset)?;
+
     let (core_record_key, _) = CoreRecord::find_key(accounts.name_account.key, program_id);
     check_account_key(accounts.core_record, &core_record_key)?;
 

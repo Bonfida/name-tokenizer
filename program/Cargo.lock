@@ -1903,6 +1903,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2207,6 +2216,7 @@ dependencies = [
  "borsh 0.10.3",
  "enumflags2",
  "hexdump",
+ "itertools 0.12.1",
  "mpl-core",
  "mpl-token-metadata",
  "num-derive 0.3.3",
