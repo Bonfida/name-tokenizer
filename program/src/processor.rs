@@ -17,6 +17,7 @@ pub mod create_nft_core;
 pub mod edit_data;
 pub mod redeem_nft;
 pub mod redeem_nft_core;
+pub mod renew;
 pub mod unverify_nft;
 pub mod withdraw_tokens;
 pub mod withdraw_tokens_core;
@@ -87,6 +88,10 @@ impl Processor {
             ProgramInstruction::WithdrawTokensCore => {
                 msg!("Instruction: Withdraw Tokens Core");
                 withdraw_tokens_core::process(program_id, accounts)?;
+            }
+            ProgramInstruction::Renew => {
+                msg!("Instruction: Renew");
+                renew::process(program_id, accounts)?;
             }
         }
 

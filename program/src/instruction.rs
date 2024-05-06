@@ -1,6 +1,6 @@
 pub use crate::processor::{
-    create_collection, create_mint, create_nft, edit_data, redeem_nft, unverify_nft,
-    withdraw_tokens, create_collection_core, create_nft_core, redeem_nft_core, withdraw_tokens_core
+    create_collection, create_collection_core, create_mint, create_nft, create_nft_core, edit_data,
+    redeem_nft, redeem_nft_core, renew, unverify_nft, withdraw_tokens, withdraw_tokens_core,
 };
 use {
     bonfida_utils::InstructionsAccount,
@@ -116,7 +116,8 @@ pub enum ProgramInstruction {
     CreateCollectionCore,
     CreateNftCore,
     RedeemNftCore,
-    WithdrawTokensCore
+    WithdrawTokensCore,
+    Renew,
 }
 #[allow(missing_docs)]
 pub fn create_mint(
@@ -170,13 +171,16 @@ pub fn unverify_nft(
     accounts.get_instruction(crate::ID, ProgramInstruction::UnverifyNft as u8, params)
 }
 
-
 #[allow(missing_docs)]
 pub fn create_collection_core(
     accounts: create_collection_core::Accounts<Pubkey>,
     params: create_collection_core::Params,
 ) -> Instruction {
-    accounts.get_instruction(crate::ID, ProgramInstruction::CreateCollectionCore as u8, params)
+    accounts.get_instruction(
+        crate::ID,
+        ProgramInstruction::CreateCollectionCore as u8,
+        params,
+    )
 }
 
 #[allow(missing_docs)]
@@ -200,5 +204,14 @@ pub fn withdraw_tokens_core(
     accounts: withdraw_tokens_core::Accounts<Pubkey>,
     params: withdraw_tokens_core::Params,
 ) -> Instruction {
-    accounts.get_instruction(crate::ID, ProgramInstruction::WithdrawTokensCore as u8, params)
+    accounts.get_instruction(
+        crate::ID,
+        ProgramInstruction::WithdrawTokensCore as u8,
+        params,
+    )
+}
+
+#[allow(missing_docs)]
+pub fn renew(accounts: renew::Accounts<Pubkey>, params: renew::Params) -> Instruction {
+    accounts.get_instruction(crate::ID, ProgramInstruction::Renew as u8, params)
 }

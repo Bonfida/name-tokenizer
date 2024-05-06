@@ -20,7 +20,9 @@ pub mod common;
 
 use mpl_core::instructions::TransferV1InstructionArgs;
 use name_tokenizer::{
-    instruction::{create_collection_core, create_nft_core, redeem_nft_core, withdraw_tokens_core},
+    instruction::{
+        create_collection_core, create_nft_core, redeem_nft_core, renew, withdraw_tokens_core,
+    },
     state::CoreRecord,
 };
 
@@ -300,6 +302,30 @@ async fn test_mpl_core() {
         withdraw_tokens_core::Params {},
     );
     sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&bob])
+        .await
+        .unwrap();
+
+    ///////////////////////////////////////////////////
+    // Renew and transfer back to SNS Registrar
+    ///////////////////////////////////////////////////
+
+    let renew_authority = Keypair::new();
+    let ix = renew(
+        renew::Accounts {
+            central_state: &name_tokenizer::central_state::KEY,
+            collection: &collection,
+            core_asset: &core_asset,
+            core_record: &core_record,
+            renew_authority: &renew_authority.pubkey(),
+            fee_payer: &prg_test_ctx.payer.pubkey(),
+            name_account: &name_key,
+            mpl_core_program: &mpl_core::ID,
+            spl_name_service_program: &spl_name_service::ID,
+            system_program: &system_program::ID,
+        },
+        renew::Params {},
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![&renew_authority])
         .await
         .unwrap();
 }
