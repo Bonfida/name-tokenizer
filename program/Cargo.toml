@@ -15,7 +15,7 @@ devnet = []
 
 
 [dependencies]
-solana-program = "1.16.16"
+solana-program = "1.18.11"
 num_enum = "0.5.4"
 borsh = "0.10.3"
 thiserror = "1.0.44"
@@ -23,20 +23,20 @@ num-traits = "0.2"
 num-derive = "0.3"
 enumflags2 = "0.7.1"
 spl-token = {version="4.0.0", features= ["no-entrypoint"]}
-bonfida-utils = "0.4.2"
+bonfida-utils = "0.6.0"
 spl-associated-token-account = {version = "2.3.0", features = ["no-entrypoint"]}
 spl-name-service = { version = "0.3.0", features = ["no-entrypoint"] }
 mpl-token-metadata = { version = "4.0.0" }
 solana-security-txt = "1.1.1"
-ahash = "=0.8.6"
+
 
 
 [dev-dependencies]
 hexdump = "0.1.0"
-solana-sdk = "1.16.0"
+solana-sdk = "1.18.11"
 rand = "0.8.4"
 arrayref = "0.3.6"
-solana-program-test = "1.16.0"
+solana-program-test = "1.18.11"
 tokio = {version="1.6", features = ["macros"]}
 
 
