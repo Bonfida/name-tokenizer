@@ -1,7 +1,7 @@
 use solana_program::{
     account_info::AccountInfo, entrypoint::ProgramResult, msg, program::invoke_signed,
     program_error::ProgramError, program_pack::Pack, pubkey::Pubkey, rent::Rent,
-    system_instruction::create_account, sysvar::Sysvar,
+    system_instruction, system_instruction::create_account, sysvar::Sysvar,
 };
 
 #[allow(missing_docs)]
@@ -17,6 +17,23 @@ impl Cpi {
         signer_seeds: &[&[u8]],
         space: usize,
     ) -> ProgramResult {
+        let account_lamports = account_to_create.lamports();
+        if account_lamports != 0 && account_to_create.data_is_empty() {
+            let defund_created_account = system_instruction::transfer(
+                account_to_create.key,
+                fee_payer.key,
+                account_lamports,
+            );
+            invoke_signed(
+                &defund_created_account,
+                &[
+                    system_program.clone(),
+                    fee_payer.clone(),
+                    account_to_create.clone(),
+                ],
+                &[signer_seeds],
+            )?;
+        }
         let create_state_instruction = create_account(
             fee_payer.key,
             account_to_create.key,
