@@ -63,6 +63,7 @@ pub struct Accounts<'a, T> {
     pub central_state_nft_ata: &'a T,
 
     /// The fee payer account
+    #[cons(writable, signer)]
     pub fee_payer: &'a T,
 
     /// The SPL token program account

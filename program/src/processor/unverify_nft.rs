@@ -45,7 +45,6 @@ pub struct Accounts<'a, T> {
     pub central_state: &'a T,
 
     /// The fee payer account
-    #[cons(writable, signer)]
     pub fee_payer: &'a T,
 
     /// The metadata program account
@@ -72,7 +71,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
             collection_metadata: next_account_info(accounts_iter)?,
             collection_mint: next_account_info(accounts_iter)?,
             central_state: next_account_info(accounts_iter)?,
-            fee_payer: next_account_info(accounts_iter)?,
+            fee_payer: next_account_info(accounts_iter)?, // Unused but keeping it for backward compatibility
             metadata_program: next_account_info(accounts_iter)?,
             system_program: next_account_info(accounts_iter)?,
             rent_account: next_account_info(accounts_iter)?,
