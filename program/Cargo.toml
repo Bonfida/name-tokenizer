@@ -1,6 +1,6 @@
 [package]
 name = "name-tokenizer"
-version = "2.0.0"
+version = "2.1.0"
 edition = "2018"
 description = "A Solana program which enables the tokenization of a Solana Name Service into an NFT"
 license = "MIT"
