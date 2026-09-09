@@ -1,6 +1,6 @@
 //! Tokenize a domain name
 
-use mpl_token_metadata::{
+use crate::mpl_token_metadata::{
     accounts::{MasterEdition, Metadata},
     instructions::{
         CreateMetadataAccountV3Cpi, CreateMetadataAccountV3CpiAccounts,
@@ -21,12 +21,12 @@ use crate::{
 };
 
 use {
+    crate::mpl_token_metadata::types::{Creator, DataV2},
     bonfida_utils::{
         checks::{check_account_key, check_account_owner, check_signer},
         BorshSize, InstructionsAccount,
     },
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_token_metadata::types::{Creator, DataV2},
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
@@ -35,8 +35,9 @@ use {
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
-        system_program, sysvar,
+        sysvar,
     },
+    solana_system_interface::program as system_program,
     spl_name_service::instruction::transfer,
     spl_token::{instruction::mint_to, state::Mint},
 };
@@ -144,7 +145,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         // Check keys
         check_account_key(accounts.central_state, &crate::central_state::KEY)?;
         check_account_key(accounts.spl_token_program, &spl_token::ID)?;
-        check_account_key(accounts.metadata_program, &mpl_token_metadata::ID)?;
+        check_account_key(accounts.metadata_program, &crate::mpl_token_metadata::ID)?;
         check_account_key(accounts.system_program, &system_program::ID)?;
         check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
         check_account_key(accounts.rent_account, &sysvar::rent::ID)?;
@@ -157,10 +158,11 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         check_account_owner(accounts.name_account, &spl_name_service::ID)?;
         check_account_owner(accounts.nft_record, &system_program::ID)
             .or_else(|_| check_account_owner(accounts.nft_record, program_id))?;
-        check_account_owner(accounts.metadata_account, &system_program::ID)
-            .or_else(|_| check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID))?;
-        check_account_owner(accounts.edition_account, &mpl_token_metadata::ID)?;
-        check_account_owner(accounts.collection_metadata, &mpl_token_metadata::ID)?;
+        check_account_owner(accounts.metadata_account, &system_program::ID).or_else(|_| {
+            check_account_owner(accounts.metadata_account, &crate::mpl_token_metadata::ID)
+        })?;
+        check_account_owner(accounts.edition_account, &crate::mpl_token_metadata::ID)?;
+        check_account_owner(accounts.collection_metadata, &crate::mpl_token_metadata::ID)?;
         check_account_owner(accounts.collection_mint, &spl_token::ID)?;
 
         // Check signer

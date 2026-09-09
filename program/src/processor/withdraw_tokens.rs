@@ -14,9 +14,9 @@ use {
         program_error::ProgramError,
         pubkey::Pubkey,
         rent::Rent,
-        system_program,
         sysvar::Sysvar,
     },
+    solana_system_interface::program as system_program,
     spl_token::state::Account,
 };
 

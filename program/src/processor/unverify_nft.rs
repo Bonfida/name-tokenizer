@@ -1,6 +1,6 @@
 //! Unverify an NFT
 
-use mpl_token_metadata::{
+use crate::mpl_token_metadata::{
     accounts::{MasterEdition, Metadata},
     instructions::{UnverifyCollectionCpi, UnverifyCollectionCpiAccounts},
 };
@@ -18,8 +18,9 @@ use {
         entrypoint::ProgramResult,
         program_error::ProgramError,
         pubkey::Pubkey,
-        system_program, sysvar,
+        sysvar,
     },
+    solana_system_interface::program as system_program,
 };
 
 #[derive(BorshDeserialize, BorshSerialize, BorshSize)]
@@ -82,16 +83,16 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 
         // Check keys
         check_account_key(accounts.central_state, &crate::central_state::KEY)?;
-        check_account_key(accounts.metadata_program, &mpl_token_metadata::ID)?;
+        check_account_key(accounts.metadata_program, &crate::mpl_token_metadata::ID)?;
         check_account_key(accounts.system_program, &system_program::ID)?;
         check_account_key(accounts.rent_account, &sysvar::rent::ID)?;
         #[cfg(not(feature = "devnet"))]
         check_account_key(accounts.metadata_signer, &METADATA_SIGNER)?;
 
         // Check owners
-        check_account_owner(accounts.metadata_account, &mpl_token_metadata::ID)?;
-        check_account_owner(accounts.edition_account, &mpl_token_metadata::ID)?;
-        check_account_owner(accounts.collection_metadata, &mpl_token_metadata::ID)?;
+        check_account_owner(accounts.metadata_account, &crate::mpl_token_metadata::ID)?;
+        check_account_owner(accounts.edition_account, &crate::mpl_token_metadata::ID)?;
+        check_account_owner(accounts.collection_metadata, &crate::mpl_token_metadata::ID)?;
         check_account_owner(accounts.collection_mint, &spl_token::ID)?;
 
         #[cfg(not(feature = "devnet"))]

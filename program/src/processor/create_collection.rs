@@ -1,6 +1,6 @@
 //! Create a verified collection
 
-use mpl_token_metadata::{
+use crate::mpl_token_metadata::{
     accounts::{MasterEdition, Metadata},
     instructions::{
         CreateMasterEditionV3Cpi, CreateMasterEditionV3CpiAccounts,
@@ -16,12 +16,12 @@ use crate::{
 };
 
 use {
+    crate::mpl_token_metadata::types::Creator,
     bonfida_utils::{
         checks::{check_account_key, check_account_owner, check_signer},
         BorshSize, InstructionsAccount,
     },
     borsh::{BorshDeserialize, BorshSerialize},
-    mpl_token_metadata::types::Creator,
     solana_program::{
         account_info::{next_account_info, AccountInfo},
         entrypoint::ProgramResult,
@@ -30,8 +30,9 @@ use {
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
-        system_program, sysvar,
+        sysvar,
     },
+    solana_system_interface::program as system_program,
     spl_associated_token_account::instruction::create_associated_token_account,
     spl_token::{
         instruction::{initialize_mint, mint_to},
@@ -107,7 +108,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
         // Check keys
         check_account_key(accounts.central_state, &crate::central_state::KEY)?;
         check_account_key(accounts.spl_token_program, &spl_token::ID)?;
-        check_account_key(accounts.metadata_program, &mpl_token_metadata::ID)?;
+        check_account_key(accounts.metadata_program, &crate::mpl_token_metadata::ID)?;
         check_account_key(accounts.system_program, &system_program::ID)?;
         check_account_key(accounts.spl_name_service_program, &spl_name_service::ID)?;
         check_account_key(accounts.ata_program, &spl_associated_token_account::ID)?;

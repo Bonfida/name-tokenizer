@@ -6,6 +6,8 @@ pub mod entrypoint;
 pub mod error;
 /// Program instructions and their CPI-compatible bindings
 pub mod instruction;
+/// Solana 4-compatible subset of the Metaplex Token Metadata interface.
+pub mod mpl_token_metadata;
 /// Describes the different data structures that the program uses to encode state
 pub mod state;
 
