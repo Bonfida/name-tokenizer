@@ -1,7 +1,8 @@
 [package]
 name = "name-tokenizer"
-version = "2.1.0"
+version = "3.0.0-beta.0"
 edition = "2018"
+resolver = "2"
 description = "A Solana program which enables the tokenization of a Solana Name Service into an NFT"
 license = "MIT"
 repository = "https://github.com/bonfida/name-tokenizer"
@@ -15,31 +16,31 @@ devnet = []
 
 
 [dependencies]
-solana-program = "2.2.1"
+solana-program = "4.0.0"
 num_enum = "0.5.4"
-borsh = "0.10.3"
+borsh = { version = "1.7.0", features = ["derive"] }
 thiserror = "1.0.44"
 num-traits = "0.2"
 num-derive = "0.3"
 enumflags2 = "0.7.1"
-spl-token = { version = "7.0.0", features = ["no-entrypoint"] }
-bonfida-utils = "0.7.0"
-spl-associated-token-account = { version = "7.0.0", features = [
+spl-token = { version = "9.0.0", features = ["no-entrypoint"] }
+bonfida-utils = "0.9.2"
+spl-associated-token-account = { version = "8.0.0", features = [
     "no-entrypoint",
 ] }
-spl-name-service = { version = "0.4.0", package = "spl-name-service-2", features = [
+spl-name-service = { version = "0.5.0", package = "spl-name-service-2", features = [
     "no-entrypoint",
 ] }
-mpl-token-metadata = { version = "5.1.1" }
 solana-security-txt = "1.1.1"
+solana-system-interface = { version = "3.2.0", features = ["bincode"] }
 
 
 [dev-dependencies]
 hexdump = "0.1.0"
-solana-sdk = "2.2.1"
+solana-sdk = "4.0.1"
 rand = "0.8.4"
 arrayref = "0.3.6"
-solana-program-test = "2.2.1"
+solana-program-test = { version = "4.2.2", features = ["agave-unstable-api"] }
 tokio = { version = "1.6", features = ["macros"] }
 
 

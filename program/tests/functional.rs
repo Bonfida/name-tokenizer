@@ -1,5 +1,4 @@
 use {
-    borsh::{BorshDeserialize, BorshSerialize},
     name_tokenizer::{
         entrypoint::process_instruction,
         instruction::{
@@ -10,12 +9,13 @@ use {
             ROOT_DOMAIN_ACCOUNT,
         },
     },
-    solana_program::{hash::hashv, pubkey::Pubkey, system_instruction, system_program, sysvar},
+    solana_program::{hash::hashv, pubkey::Pubkey, sysvar},
     solana_program_test::{processor, ProgramTest},
     solana_sdk::{
         account::Account,
         signer::{keypair::Keypair, Signer},
     },
+    solana_system_interface::{instruction as system_instruction, program as system_program},
     spl_associated_token_account::{
         get_associated_token_address, instruction::create_associated_token_account,
     },
@@ -24,8 +24,13 @@ use {
 
 pub mod common;
 
-use mpl_token_metadata::accounts::{MasterEdition, Metadata};
-use name_tokenizer::instruction::edit_data;
+use name_tokenizer::{
+    instruction::edit_data,
+    mpl_token_metadata::{
+        accounts::{MasterEdition, Metadata},
+        ID as MPL_TOKEN_METADATA_ID,
+    },
+};
 
 use crate::common::utils::{mint_bootstrap, sign_send_instructions};
 
@@ -42,7 +47,7 @@ async fn test_offer() {
         processor!(process_instruction),
     );
     program_test.add_program("spl_name_service", spl_name_service::ID, None);
-    program_test.add_program("mpl_token_metadata", mpl_token_metadata::ID, None);
+    program_test.add_program("mpl_token_metadata", MPL_TOKEN_METADATA_ID, None);
 
     // Create domain name
     let name = "something_domain_name";
@@ -58,12 +63,11 @@ async fn test_offer() {
     );
 
     let name_domain_data = [
-        spl_name_service::state::NameRecordHeader {
+        borsh::to_vec(&spl_name_service::state::NameRecordHeader {
             parent_name: ROOT_DOMAIN_ACCOUNT,
             owner: alice.pubkey(),
             class: Pubkey::default(),
-        }
-        .try_to_vec()
+        })
         .unwrap(),
         vec![0; 1000],
     ]
@@ -156,7 +160,7 @@ async fn test_offer() {
             central_state_nft_ata: &central_state_collection_ata,
             fee_payer: &prg_test_ctx.payer.pubkey(),
             spl_token_program: &spl_token::ID,
-            metadata_program: &mpl_token_metadata::ID,
+            metadata_program: &MPL_TOKEN_METADATA_ID,
             system_program: &system_program::ID,
             spl_name_service_program: &spl_name_service::ID,
             rent_account: &sysvar::rent::ID,
@@ -207,7 +211,7 @@ async fn test_offer() {
             metadata_account: &metadata_key,
             central_state: &central_key,
             spl_token_program: &spl_token::ID,
-            metadata_program: &mpl_token_metadata::ID,
+            metadata_program: &MPL_TOKEN_METADATA_ID,
             system_program: &system_program::ID,
             spl_name_service_program: &spl_name_service::ID,
             rent_account: &sysvar::rent::ID,
@@ -394,7 +398,7 @@ async fn test_offer() {
             metadata_account: &metadata_key,
             central_state: &central_key,
             spl_token_program: &spl_token::ID,
-            metadata_program: &mpl_token_metadata::ID,
+            metadata_program: &MPL_TOKEN_METADATA_ID,
             system_program: &system_program::ID,
             spl_name_service_program: &spl_name_service::ID,
             rent_account: &sysvar::rent::ID,
@@ -450,7 +454,7 @@ async fn test_offer() {
             collection_mint: &collection_mint,
             central_state: &central_key,
             fee_payer: &prg_test_ctx.payer.pubkey(),
-            metadata_program: &mpl_token_metadata::ID,
+            metadata_program: &MPL_TOKEN_METADATA_ID,
             system_program: &system_program::ID,
             rent_account: &sysvar::rent::ID,
             #[cfg(not(feature = "devnet"))]

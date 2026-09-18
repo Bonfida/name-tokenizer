@@ -16,8 +16,9 @@ use {
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
-        system_program, sysvar,
+        sysvar,
     },
+    solana_system_interface::program as system_program,
     spl_token::{instruction::initialize_mint, state::Mint},
 };
 
