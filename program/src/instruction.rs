@@ -21,7 +21,7 @@ pub enum ProgramInstruction {
     /// | 3     | ❌        | ❌      | The SPL token program account |
     /// | 4     | ❌        | ❌      | The system program account    |
     /// | 5     | ❌        | ❌      | Rent sysvar account           |
-    /// | 6     | ❌        | ❌      | Fee payer account             |
+    /// | 6     | ✅        | ✅      | Fee payer account             |
     CreateMint,
     /// Create a verified collection
     ///
@@ -32,7 +32,7 @@ pub enum ProgramInstruction {
     /// | 2     | ✅        | ❌      | The metadata account                                          |
     /// | 3     | ❌        | ❌      | The central state account                                     |
     /// | 4     | ✅        | ❌      | Token account of the central state to hold the master edition |
-    /// | 5     | ❌        | ❌      | The fee payer account                                         |
+    /// | 5     | ✅        | ✅      | The fee payer account                                         |
     /// | 6     | ❌        | ❌      | The SPL token program account                                 |
     /// | 7     | ❌        | ❌      | The metadata program account                                  |
     /// | 8     | ❌        | ❌      | The system program account                                    |
@@ -107,7 +107,7 @@ pub enum ProgramInstruction {
     /// | 2     | ❌        | ❌      | Collection                   |
     /// | 3     | ❌        | ❌      | Mint of the collection       |
     /// | 4     | ✅        | ❌      | The central state account    |
-    /// | 5     | ✅        | ✅      | The fee payer account        |
+    /// | 5     | ❌        | ❌      | The fee payer account        |
     /// | 6     | ❌        | ❌      | The metadata program account |
     /// | 7     | ❌        | ❌      | The system program account   |
     /// | 8     | ❌        | ❌      | Rent sysvar account          |
