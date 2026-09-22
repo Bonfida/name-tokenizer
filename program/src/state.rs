@@ -17,7 +17,7 @@ pub const MINT_PREFIX: &[u8; 14] = b"tokenized_name";
 
 pub const SELLER_BASIS: u16 = 500;
 
-pub const META_SYMBOL: &str = ".sol";
+pub const META_SYMBOL: &str = ".sns";
 
 pub const CREATOR_KEY: Pubkey = pubkey!("5D2zKog251d6KPCyFyLMt3KroWwXXPWSgTPyhV22K2gR");
 
