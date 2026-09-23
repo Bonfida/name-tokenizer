@@ -1,6 +1,6 @@
 pub use crate::processor::{
     create_collection, create_mint, create_nft, edit_data, redeem_nft, unverify_nft,
-    withdraw_tokens,
+    update_nft_metadata_uri, withdraw_tokens,
 };
 use {
     bonfida_utils::InstructionsAccount,
@@ -113,6 +113,15 @@ pub enum ProgramInstruction {
     /// | 8     | ❌        | ❌      | Rent sysvar account          |
     /// | 9     | ❌        | ✅      | The metadata signer          |
     UnverifyNft,
+    /// Update the metadata URI and symbol of a tokenized domain name
+    ///
+    /// | Index | Writable | Signer | Description                  |
+    /// | -------------------------------------------------------- |
+    /// | 0     | ✅        | ❌      | The metadata account         |
+    /// | 1     | ❌        | ❌      | The central state account    |
+    /// | 2     | ❌        | ❌      | The metadata program account |
+    /// | 3     | ❌        | ✅      | The metadata signer          |
+    UpdateNftMetadataUri,
 }
 #[allow(missing_docs)]
 pub fn create_mint(
@@ -164,4 +173,16 @@ pub fn unverify_nft(
     params: unverify_nft::Params,
 ) -> Instruction {
     accounts.get_instruction(crate::ID, ProgramInstruction::UnverifyNft as u8, params)
+}
+
+#[allow(missing_docs)]
+pub fn update_nft_metadata_uri(
+    accounts: update_nft_metadata_uri::Accounts<Pubkey>,
+    params: update_nft_metadata_uri::Params,
+) -> Instruction {
+    accounts.get_instruction(
+        crate::ID,
+        ProgramInstruction::UpdateNftMetadataUri as u8,
+        params,
+    )
 }

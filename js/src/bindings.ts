@@ -5,6 +5,7 @@ import {
   createMintInstruction,
   redeemNftInstruction,
   createCollectionInstruction,
+  updateNftMetadataUriInstruction,
 } from "./raw_instructions";
 import {
   COLLECTION_PREFIX,
@@ -271,6 +272,41 @@ export const withdrawTokens = (
     tokenSource,
     TOKEN_PROGRAM_ID,
     SystemProgram.programId
+  );
+
+  return [ix];
+};
+
+/**
+ * This function can be used to update the metadata URI and symbol of a tokenized domain name
+ * @param nameAccount The domain name key
+ * @param uri The new URI of the metadata
+ * @param programId The Name tokenizer program ID
+ * @returns
+ */
+export const updateNftMetadataUri = (
+  nameAccount: PublicKey,
+  uri: string,
+  programId: PublicKey
+) => {
+  const [centralKey] = PublicKey.findProgramAddressSync(
+    [programId.toBuffer()],
+    programId
+  );
+
+  const [mint] = PublicKey.findProgramAddressSync(
+    [MINT_PREFIX, nameAccount.toBuffer()],
+    programId
+  );
+
+  const metadataAccount = getMetadataPda(mint);
+
+  const ix = new updateNftMetadataUriInstruction({ uri }).getInstruction(
+    programId,
+    metadataAccount,
+    centralKey,
+    METADATA_ID,
+    METADATA_SIGNER
   );
 
   return [ix];
