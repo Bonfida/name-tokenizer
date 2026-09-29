@@ -1,4 +1,4 @@
-FROM rust:1.95.0
+FROM rust:1.98.1
 
 ENV HOME="/nonroot"
 ENV PATH="${HOME}/.local/share/solana/install/active_release/bin:${PATH}"
@@ -14,13 +14,13 @@ USER $HOST_UID:$HOST_GID
 
 
 # Install Solana tools.
-RUN sh -c "$(curl -sSfL https://release.anza.xyz/v4.2.2/install)"
+RUN sh -c "$(curl -sSfL https://release.anza.xyz/v4.3.0/install)"
 
 WORKDIR /nonroot
 
 RUN cargo new temp --edition 2021 --lib
 WORKDIR /nonroot/temp
 RUN printf "\n[lib]\ncrate-type=[\"cdylib\"]\n" >> Cargo.toml
-RUN cargo build-sbf
+RUN cargo build-sbf --arch v3
 
 WORKDIR /workdir
