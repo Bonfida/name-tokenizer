@@ -13,19 +13,19 @@ if [[ ${1} == "build-only" ]]; then
         --net=host \
         --mount "type=bind,source=$(pwd),target=/workdir" \
         name_tokenizer:latest \
-        /bin/bash -c "cargo build-sbf"
+        /bin/bash -c "cargo build-sbf --arch v3"
 elif [[ ${1} == "test" ]]; then
     echo "Running tests..."
     docker run -it \
         --net=host \
         --mount "type=bind,source=$(pwd),target=/workdir" \
         name_tokenizer:latest \
-        /bin/bash -c "cargo test-sbf --features devnet"
+        /bin/bash -c "cargo test-sbf --features devnet --arch v3"
 else
     echo "Running tests + building..."
     docker run -it \
         --net=host \
         --mount "type=bind,source=$(pwd),target=/workdir" \
         name_tokenizer:latest \
-        /bin/bash -c "cargo test-sbf --features devnet && cargo build-sbf"
+        /bin/bash -c "cargo test-sbf --features devnet --arch v3 && cargo build-sbf --arch v3"
 fi
