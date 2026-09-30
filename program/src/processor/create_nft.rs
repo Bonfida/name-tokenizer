@@ -167,6 +167,7 @@ impl<'a, 'b: 'a> Accounts<'a, AccountInfo<'b>> {
 
         // Check signer
         check_signer(accounts.name_owner)?;
+        check_signer(accounts.fee_payer)?;
         #[cfg(not(feature = "devnet"))]
         check_signer(accounts.metadata_signer)?;
 

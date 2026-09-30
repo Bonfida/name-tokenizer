@@ -48,6 +48,7 @@ pub struct Accounts<'a, T> {
     pub rent_account: &'a T,
 
     /// Fee payer account
+    #[cons(writable, signer)]
     pub fee_payer: &'a T,
 }
 

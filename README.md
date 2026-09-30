@@ -1,11 +1,11 @@
 <h1 align="center">Name tokenizer</h1>
 <br />
 <p align="center">
-<img width="250" src="https://i.imgur.com/nn7LMNV.png"/>
+<img width="250" src="https://v2.sns.id/assets/logo/brand.svg"/>
 </p>
 <p align="center">
-<a href="https://twitter.com/bonfida">
-<img src="https://img.shields.io/twitter/url?label=Bonfida&style=social&url=https%3A%2F%2Ftwitter.com%2Fbonfida">
+<a href="https://twitter.com/sns">
+<img src="https://img.shields.io/twitter/follow/sns?label=SNS&style=social">
 </a>
 </p>
 <br />
