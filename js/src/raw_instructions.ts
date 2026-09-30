@@ -590,3 +590,55 @@ export class redeemNftInstruction {
     });
   }
 }
+export class updateNftMetadataUriInstruction {
+  tag: number;
+  uri: string;
+  static schema = {
+    struct: {
+      tag: "u8",
+      uri: "string",
+    },
+  };
+  constructor(obj: { uri: string }) {
+    this.tag = 7;
+    this.uri = obj.uri;
+  }
+  serialize(): Uint8Array {
+    return serialize(updateNftMetadataUriInstruction.schema, this);
+  }
+  getInstruction(
+    programId: PublicKey,
+    metadataAccount: PublicKey,
+    centralState: PublicKey,
+    metadataProgram: PublicKey,
+    metadataSigner: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys: AccountKey[] = [];
+    keys.push({
+      pubkey: metadataAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+    keys.push({
+      pubkey: centralState,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: metadataProgram,
+      isSigner: false,
+      isWritable: false,
+    });
+    keys.push({
+      pubkey: metadataSigner,
+      isSigner: true,
+      isWritable: false,
+    });
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}

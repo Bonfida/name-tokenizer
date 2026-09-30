@@ -15,6 +15,7 @@ pub mod create_nft;
 pub mod edit_data;
 pub mod redeem_nft;
 pub mod unverify_nft;
+pub mod update_nft_metadata_uri;
 pub mod withdraw_tokens;
 
 pub struct Processor {}
@@ -65,6 +66,12 @@ impl Processor {
                 let params = unverify_nft::Params::try_from_slice(instruction_data)
                     .map_err(|_| ProgramError::InvalidInstructionData)?;
                 unverify_nft::process(program_id, accounts, params)?
+            }
+            ProgramInstruction::UpdateNftMetadataUri => {
+                msg!("Instruction: Update NFT metadata URI");
+                let params = update_nft_metadata_uri::Params::try_from_slice(instruction_data)
+                    .map_err(|_| ProgramError::InvalidInstructionData)?;
+                update_nft_metadata_uri::process(program_id, accounts, params)?
             }
         }
 

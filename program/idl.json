@@ -337,6 +337,37 @@
                 }
             ],
             "args": []
+        },
+        {
+            "name": "update_nft_metadata_uri",
+            "accounts": [
+                {
+                    "name": "metadataAccount",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "centralState",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "metadataProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "metadataSigner",
+                    "isMut": false,
+                    "isSigner": true
+                }
+            ],
+            "args": [
+                {
+                    "name": "uri",
+                    "type": "string"
+                }
+            ]
         }
     ],
     "accounts": [

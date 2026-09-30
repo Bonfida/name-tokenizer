@@ -2,7 +2,8 @@ use {
     name_tokenizer::{
         entrypoint::process_instruction,
         instruction::{
-            create_collection, create_mint, create_nft, redeem_nft, unverify_nft, withdraw_tokens,
+            create_collection, create_mint, create_nft, redeem_nft, unverify_nft,
+            update_nft_metadata_uri, withdraw_tokens,
         },
         state::{
             CentralState, NftRecord, COLLECTION_PREFIX, METADATA_SIGNER, MINT_PREFIX,
@@ -254,6 +255,38 @@ async fn test_offer() {
         .unwrap();
 
     ////
+    // Update NFT metadata URI
+    ////
+    let new_uri = "https://example.com/metadata.json";
+    let ix = update_nft_metadata_uri(
+        name_tokenizer::instruction::update_nft_metadata_uri::Accounts {
+            metadata_account: &metadata_key,
+            central_state: &central_key,
+            metadata_program: &MPL_TOKEN_METADATA_ID,
+            #[cfg(not(feature = "devnet"))]
+            metadata_signer: &METADATA_SIGNER,
+        },
+        update_nft_metadata_uri::Params {
+            uri: new_uri.to_string(),
+        },
+    );
+    sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap();
+
+    let info = prg_test_ctx
+        .banks_client
+        .get_account(metadata_key)
+        .await
+        .unwrap()
+        .unwrap();
+    let des = Metadata::safe_deserialize(&info.data).unwrap();
+    assert_eq!(des.uri.trim_end_matches('\0'), new_uri);
+    assert_eq!(des.symbol.trim_end_matches('\0'), ".sns");
+    assert_eq!(des.name.trim_end_matches('\0'), name);
+    assert!(des.collection.unwrap().verified);
+
+    ////
     // Withdraw NFT
     ////
     let ix = redeem_nft(
@@ -474,4 +507,59 @@ async fn test_offer() {
 
     let des = Metadata::safe_deserialize(&info.data).unwrap();
     assert!(!des.collection.unwrap().verified);
+}
+
+#[cfg(not(feature = "devnet"))]
+#[tokio::test]
+async fn test_update_nft_metadata_uri_requires_metadata_signer() {
+    use solana_program::instruction::InstructionError;
+    use solana_program_test::BanksClientError;
+    use solana_sdk::transaction::TransactionError;
+
+    let mut program_test = ProgramTest::new(
+        "name_tokenizer",
+        name_tokenizer::ID,
+        processor!(process_instruction),
+    );
+
+    let metadata_key = Pubkey::new_unique();
+    program_test.add_account(
+        metadata_key,
+        Account {
+            lamports: 1_000_000,
+            data: vec![0; 679],
+            owner: MPL_TOKEN_METADATA_ID,
+            ..Account::default()
+        },
+    );
+
+    let mut prg_test_ctx = program_test.start_with_context().await;
+    let (central_key, _) = CentralState::find_key(&name_tokenizer::ID);
+
+    let mut ix = update_nft_metadata_uri(
+        name_tokenizer::instruction::update_nft_metadata_uri::Accounts {
+            metadata_account: &metadata_key,
+            central_state: &central_key,
+            metadata_program: &MPL_TOKEN_METADATA_ID,
+            metadata_signer: &METADATA_SIGNER,
+        },
+        update_nft_metadata_uri::Params {
+            uri: "https://example.com/metadata.json".to_string(),
+        },
+    );
+
+    let signer_meta = ix.accounts.last_mut().unwrap();
+    assert_eq!(signer_meta.pubkey, METADATA_SIGNER);
+    signer_meta.is_signer = false;
+
+    let err = sign_send_instructions(&mut prg_test_ctx, vec![ix], vec![])
+        .await
+        .unwrap_err();
+    assert!(matches!(
+        err,
+        BanksClientError::TransactionError(TransactionError::InstructionError(
+            0,
+            InstructionError::MissingRequiredSignature
+        ))
+    ));
 }

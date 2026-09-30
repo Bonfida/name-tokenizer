@@ -3172,7 +3172,7 @@ dependencies = [
 
 [[package]]
 name = "name-tokenizer"
-version = "3.0.1"
+version = "3.1.0"
 dependencies = [
  "arrayref",
  "bonfida-utils",
